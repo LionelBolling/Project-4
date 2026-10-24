@@ -5,3 +5,7 @@
 # Generated exports and local credentials
 /Project4/
 export_credentials.cfg
+
+# Generated visual verification captures
+/tests/*.png
+/tests/*.png.import
