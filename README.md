@@ -13,6 +13,21 @@ A playable Godot 4 first-person 3D interpretation of the selected Swap Day story
 escape a collapsing memory world before your shadow takes your place.
 
 Open `project.godot` in Godot 4.7 and press **F6** on `scenes/main.tscn`, or **F5** to play.
+
+### Play from a browser link
+
+The GitHub Actions workflow in `.github/workflows/pages.yml` exports the game
+with Godot 4.7.2 and deploys it to GitHub Pages. In the repository's **Settings →
+Pages → Build and deployment**, set **Source** to **GitHub Actions**. Push the
+workflow to `main`, or run **Deploy Godot game to Pages** from the Actions tab.
+After its build and deployment succeed, open
+https://lionelbolling.github.io/Project-4/ in a desktop browser.
+
+The default **Deploy from a branch** / Jekyll build cannot export a Godot game.
+The workflow publishes the generated `Project4/index.html` and its companion
+files. These generated files stay out of Git. Web exports use a single thread,
+so the host does not need special cross-origin isolation headers.
+
 The game begins in bed at night. Three blinks take you into another world.
 Explore the arrival area and walk into the video tape on the floor. Your double
 emerges, screams, and forces you toward the broken track.
