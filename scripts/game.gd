@@ -33,7 +33,7 @@ var player_visual: Node3D
 var shadow_visual: Node3D
 
 
-## First-person story, encounter and success-gated training before the live race.
+## First-person bedroom, tape encounter and race introduction.
 var yaw = 0.0
 var pitch = 0.0
 var phase_time = 0.0
@@ -44,17 +44,6 @@ var arms: Node3D
 var lids_top: ColorRect
 var lids_bottom: ColorRect
 var veil: ColorRect
-var tutorial_panel: PanelContainer
-var tutorial_label: Label
-var tutorial_step = 0
-var tutorial_waiting = true
-var tutorial_progress = 0.0
-var tutorial_did_action = false
-var tutorial_airtime = 0.0
-var checkpoint = Vector3.ZERO
-var encounter_origin = Vector3.ZERO
-var encounter_yaw = 0.0
-var completed_lessons: Array[int] = []
 var blink_count = 0
 var scare_played = false
 var scream_player: AudioStreamPlayer
@@ -62,15 +51,14 @@ var ambience: AudioStreamPlayer
 var view_bob = 0.0
 var help_label: Label
 var crosshair: Label
-var tutorial_gate: MeshInstance3D
-var race_countdown = 0.0
-const LESSONS = preload("res://scripts/systems/tutorial.gd").LESSONS
+var objective = ""
+var interaction_text = ""
+var tape_revealed = false
 
 
 var environment = preload("res://scripts/systems/environment.gd").new()
 var character_models = preload("res://scripts/systems/character_models.gd").new()
 var opening_sequence = preload("res://scripts/systems/opening_sequence.gd").new()
-var tutorial = preload("res://scripts/systems/tutorial.gd").new()
 var player_movement = preload("res://scripts/systems/player_movement.gd").new()
 var ghost_runner = preload("res://scripts/systems/ghost_runner.gd").new()
 var qte = preload("res://scripts/systems/qte.gd").new()
@@ -82,7 +70,6 @@ func _init() -> void:
 	environment.setup(self)
 	character_models.setup(self)
 	opening_sequence.setup(self)
-	tutorial.setup(self)
 	player_movement.setup(self)
 	ghost_runner.setup(self)
 	qte.setup(self)
@@ -141,21 +128,6 @@ func wake_up() -> void:
 func trigger_tape() -> void:
 	opening_sequence.trigger_tape()
 
-func enter_lesson(step: int) -> void:
-	tutorial.enter_lesson(step)
-
-func begin_lesson_attempt() -> void:
-	tutorial.begin_lesson_attempt()
-
-func complete_lesson() -> void:
-	tutorial.complete_lesson()
-
-func check_lesson(dt: float, glide: bool, dive: bool, index: int) -> void:
-	tutorial.check_lesson(dt, glide, dive, index)
-
-func retry_lesson() -> void:
-	tutorial.retry_lesson()
-
 func simulate(dt: float) -> void:
 	player_movement.simulate(dt)
 
@@ -213,8 +185,8 @@ func initialize_game() -> void:
 func reset_race() -> void:
 	game_flow.reset_race()
 
-func start_real_race() -> void:
-	game_flow.start_real_race()
+func start_real_race(ghost_start: float = 2.0) -> void:
+	game_flow.start_real_race(ghost_start)
 
 func _physics_process(dt: float) -> void:
 	game_flow._physics_process(dt)

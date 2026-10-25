@@ -15,6 +15,9 @@ func _ready() -> void:
 	game.arms = game.make_view_arms()
 	game.build_bedroom()
 	game.build_arrival()
+	var scenery = preload("res://scripts/systems/dream_scenery.gd").new()
+	scenery.setup(game)
+	scenery.build()
 	game.build_story_ui()
 	game.scream_player = AudioStreamPlayer.new()
 	game.add_child(game.scream_player)
@@ -64,31 +67,34 @@ func reset_race() -> void:
 	game.banner.text = "THE MIRROR REMEMBERS. SO DOES YOUR SHADOW."
 	game.feedback_time = 5
 
-func start_real_race() -> void:
+func start_real_race(ghost_start: float = 2.0) -> void:
 	game.reset_race()
 	game.player.position = Vector3(0, 0.1, -3)
 	game.player.velocity = Vector3.ZERO
 	game.shadow.show()
-	game.ghost_distance = 2
+	game.arms.show()
+	game.ghost_distance = ghost_start
+	game.shadow.position = Vector3(1.8, 0.05, -ghost_start)
 	game.state = "race"
 	game.yaw = 0
 	game.pitch = 0
 	game.next_qte = 5
-	game.banner.text = "IT KNOWS EVERYTHING YOU JUST LEARNED. RUN."
+	game.objective = "REACH THE PORTAL BEFORE YOUR DOUBLE"
+	game.banner.text = "BEAT YOUR DOUBLE TO THE PORTAL. RUN."
 	game.feedback_time = 4
 
 func _physics_process(dt: float) -> void:
 	if game.state == "paused": return
 	game.clock += dt
 	game.phase_time += dt
-	if game.state in ["sleep", "wake", "encounter", "forced_turn"]:
+	game.feedback_time = maxf(0, game.feedback_time - dt)
+	game.opening_sequence.animate_world(dt)
+	if game.state in ["room_entry", "sleep", "wake", "tape_reveal", "tape_grab", "track_wake", "race_flyover", "ghost_taunt"]:
 		game.opening_sequence.tick(dt)
-	elif game.state == "countdown":
-		game.update_camera(dt)
-		game.prompt.visible = true
-		game.prompt.text = "THE REAL RACE\n%d" % maxi(1, 3 - int(game.phase_time))
-		if game.phase_time >= 3: game.start_real_race()
-	elif game.state == "explore" or game.state == "race" or game.state == "tutorial":
-		if not (game.state == "tutorial" and game.tutorial_waiting): game.simulate(dt)
-		game.update_camera(dt)
+	elif game.state in ["bedroom", "explore", "race"]:
+		game.simulate(dt)
+		# Crossing the reveal boundary can change the state inside simulate().
+		if game.state in ["bedroom", "explore", "race"]:
+			game.update_camera(dt)
+			game.opening_sequence.update_interaction()
 	game.update_ui()

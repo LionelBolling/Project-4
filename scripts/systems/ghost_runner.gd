@@ -7,7 +7,7 @@ func setup(context: Node3D) -> void:
 	game = context
 
 func update_ghost(dt: float) -> void:
-	# A competitive rival only after training: faster pace and occasional surges.
+	# A competitive rival with a faster pace and occasional surges.
 	var surge = 2.2 if fmod(game.elapsed, 12) > 9 else 0.0
 	game.ghost_distance += (14.0 + minf(game.elapsed * 0.018, 1.8) + surge) * dt
 	var gi = game.tile_at(game.ghost_distance)
