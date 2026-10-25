@@ -90,14 +90,46 @@ func make_runner(parent: Node3D, _color: Color) -> Node3D:
 	return root
 
 func make_hand(parent: Node3D, p: Vector3, side: int, skin: Material) -> void:
-	game.orb(parent, p, Vector3(0.15, 0.19, 0.09), skin)
+	var hand = Node3D.new()
+	hand.name = "HandL" if side < 0 else "HandR"
+	parent.add_child(hand)
+	hand.position = p
+	var nails = game.material(Color("c6aa98"))
+	nails.roughness = 0.48
+	# A narrow wrist flows into a flattened palm and a soft thumb pad.
+	game.orb(hand, Vector3(0, 0.068, 0), Vector3(0.098, 0.11, 0.071), skin)
+	game.orb(hand, Vector3(0, -0.012, 0), Vector3(0.148, 0.173, 0.077), skin)
+	game.orb(hand, Vector3(-side * 0.043, 0.008, -0.012), Vector3(0.066, 0.105, 0.065), skin)
+	# Index through little finger: mirrored spacing, distinct lengths and a relaxed curl.
+	var lengths = [0.119, 0.137, 0.128, 0.099]
+	var radii = [0.0175, 0.0185, 0.017, 0.0145]
 	for i in range(4):
-		var x = -0.052 + i * 0.034
-		var tip = p + Vector3(x, -0.13 - (0.02 if i in [1, 2] else 0), -0.018)
-		game.capsule(parent, p + Vector3(x, -0.055, 0), tip, 0.019, skin)
-		game.capsule(parent, tip, tip + Vector3(0, -0.035, -0.035), 0.017, skin)
-		game.orb(parent, tip + Vector3(0, -0.014, -0.041), Vector3(0.022, 0.032, 0.006), game.material(Color("cdbca9")))
-	game.capsule(parent, p + Vector3(side * 0.06, 0.015, 0), p + Vector3(side * 0.1, -0.07, -0.035), 0.024, skin)
+		var x = side * (-0.051 + i * 0.034)
+		var length: float = lengths[i]
+		var radius: float = radii[i]
+		var base = Vector3(x, -0.067 + (0.012 if i == 3 else 0.0), 0)
+		var joint = base + Vector3(side * (i - 1.3) * 0.004, -length * 0.46, -0.007)
+		var bend = joint + Vector3(0, -length * 0.30, -0.015 - i * 0.002)
+		var tip = bend + Vector3(0, -length * 0.24, -0.019)
+		game.orb(hand, base, Vector3(radius * 2.15, radius * 2.0, radius * 2.1), skin)
+		finger_segment(hand, base, joint, radius, skin)
+		finger_segment(hand, joint, bend, radius * 0.88, skin)
+		finger_segment(hand, bend, tip, radius * 0.76, skin)
+		var nail = game.orb(hand, tip + Vector3(0, 0.009, 0.011), Vector3(radius * 1.22, 0.025, 0.004), nails)
+		nail.rotation.x = -0.55
+	var thumb_base = Vector3(-side * 0.054, 0.016, -0.006)
+	var thumb_joint = Vector3(-side * 0.091, -0.022, -0.022)
+	var thumb_tip = Vector3(-side * 0.103, -0.065, -0.042)
+	finger_segment(hand, thumb_base, thumb_joint, 0.023, skin)
+	finger_segment(hand, thumb_joint, thumb_tip, 0.019, skin)
+	var thumbnail = game.orb(hand, thumb_tip + Vector3(0, 0.009, 0.014), Vector3(0.023, 0.026, 0.004), nails)
+	thumbnail.rotation = Vector3(-0.4, 0, -side * 0.22)
+
+func finger_segment(parent: Node3D, a: Vector3, b: Vector3, radius: float, skin: Material) -> void:
+	# Capsule height includes its end caps; keep the joints exactly at a and b.
+	var segment = game.capsule(parent, a, b, radius, skin)
+	segment.mesh = segment.mesh.duplicate()
+	segment.mesh.height = a.distance_to(b) + radius * 2.0
 
 func make_view_arms() -> Node3D:
 	var root = Node3D.new()
@@ -116,7 +148,7 @@ func make_view_arms() -> Node3D:
 		arm.add_child(hand)
 		hand.position = Vector3(0, 0.08, 0)
 		hand.rotation.z = PI
-		game.make_hand(hand, Vector3.ZERO, side, skin)
+		game.make_hand(hand, Vector3.ZERO, -side, skin)
 		# Wristwatch, knuckle marks and sleeve stitching match the double.
 		if side == -1:
 			game.box(arm, Vector3(0, -0.09, -0.085), Vector3(0.11, 0.09, 0.025), game.material(Color("151923")))

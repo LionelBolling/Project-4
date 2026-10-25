@@ -21,7 +21,6 @@ func react_to_landing(index: int, impact: float) -> void:
 		p.collapse = 0.9
 		game.banner.text = "THIS MEMORY IS BREAKING. MOVE!"
 		game.feedback_time = 2
-		if game.state == "tutorial" and game.tutorial_step == 5: game.tutorial_progress = 1
 
 func tick_platforms(dt: float) -> void:
 	for p in game.platforms:
@@ -105,9 +104,7 @@ func build_world() -> void:
 	exit_shape.size = Vector3(14, 1.2, 30)
 	exit_col.shape = exit_shape
 	exit_body.add_child(exit_col)
-	for side in [-1, 1]: game.box(game, Vector3(side * 3, 3, -game.FINISH), Vector3(0.35, 6, 0.5), game.material(game.MINT, 2))
-	game.box(game, Vector3(0, 6, -game.FINISH), Vector3(6.3, 0.4, 0.5), game.material(game.MINT, 2))
-	game.caption(game, "WAKE UP", Vector3(0, 7.5, -game.FINISH), game.MINT, 70)
+	game.caption(game, "WAKE UP", Vector3(0, 7.2, -game.FINISH), Color("a6d1ff"), 54)
 	# Cracked mirror: a solid shadow, and a fading original.
 	var mirror = Node3D.new()
 	game.add_child(mirror)
@@ -142,16 +139,17 @@ func solid(parent: Node3D, pos: Vector3, size: Vector3, color: Color) -> StaticB
 	return body
 
 func build_arrival() -> void:
-	game.solid(game, Vector3(0, -0.6, 9), Vector3(26, 1.2, 20), Color("202e40"))
+	var origin = Vector3(0, 0, 1000)
+	game.solid(game, origin + Vector3(0, -0.6, 9), Vector3(26, 1.2, 20), Color("202e40"))
 	for side in [-1, 1]:
-		game.solid(game, Vector3(side * 12.8, 1, 9), Vector3(0.5, 3, 20), Color("22283b"))
-	game.solid(game, Vector3(0, 1, 18.8), Vector3(26, 3, 0.5), Color("22283b"))
+		game.solid(game, origin + Vector3(side * 12.8, 1, 9), Vector3(0.5, 3, 20), Color("22283b"))
+	game.solid(game, origin + Vector3(0, 1, 18.8), Vector3(26, 3, 0.5), Color("22283b"))
 	for i in range(14):
-		var slab = game.box(game, Vector3(randf_range(-10, 10), 0.025, randf_range(1, 18)), Vector3(randf_range(0.3, 1), 0.035, randf_range(0.3, 1)), game.material(Color("495063")))
+		var slab = game.box(game, origin + Vector3(randf_range(-10, 10), 0.025, randf_range(1, 18)), Vector3(randf_range(0.3, 1), 0.035, randf_range(0.3, 1)), game.material(Color("495063")))
 		slab.rotation.y = randf() * TAU
 	game.tape = Node3D.new()
 	game.add_child(game.tape)
-	game.tape.position = Vector3(1.5, 0.12, 6)
+	game.tape.position = origin + Vector3(1.5, 0.12, 6)
 	game.tape.rotation.y = -0.3
 	game.box(game.tape, Vector3.ZERO, Vector3(0.62, 0.14, 0.37), game.material(Color("14131b")))
 	game.box(game.tape, Vector3(0, 0.076, 0), Vector3(0.4, 0.015, 0.23), game.material(Color("cfba9d")))
@@ -164,11 +162,6 @@ func build_arrival() -> void:
 	light.light_color = Color("e1b991")
 	light.light_energy = 0.8
 	light.omni_range = 3
-	# Tutorial gate is a visible boundary. Physics is clamped until the lesson succeeds.
-	game.tutorial_gate = game.box(game, Vector3(0, 1.8, -12), Vector3(10.8, 3.6, 0.06), game.material(Color(0.22, 0.8, 0.72, 0.25), 0.3))
-	var gate_mat = game.tutorial_gate.material_override as StandardMaterial3D
-	gate_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	game.tutorial_gate.hide()
 
 func tile_at(distance: float) -> int:
 	for i in range(game.platforms.size()):

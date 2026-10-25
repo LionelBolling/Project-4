@@ -53,3 +53,23 @@ func play_scream() -> void:
 	wave.data = data
 	game.scream_player.stream = wave
 	game.scream_player.play()
+
+func play_laugh() -> void:
+	if game.muted: return
+	var wave = AudioStreamWAV.new()
+	wave.format = AudioStreamWAV.FORMAT_16_BITS
+	wave.mix_rate = 22050
+	var data = PackedByteArray()
+	var samples = 44100
+	data.resize(samples * 2)
+	var phase = 0.0
+	for i in range(samples):
+		var t = i / 22050.0
+		var syllable = fmod(t, 0.34) / 0.34
+		var envelope = sin(minf(syllable * 1.6, 1.0) * PI) * maxf(0, 1 - t / 2)
+		phase += TAU * (115 + 70 * (1 - syllable) + sin(t * 8) * 10) / 22050.0
+		var voice = sin(phase) + sin(phase * 2) * 0.4 + sin(phase * 3) * 0.18
+		data.encode_s16(i * 2, int(clampf(voice * envelope * 9000, -22000, 22000)))
+	wave.data = data
+	game.scream_player.stream = wave
+	game.scream_player.play()

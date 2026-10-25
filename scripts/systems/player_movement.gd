@@ -10,16 +10,15 @@ func simulate(dt: float) -> void:
 	if game.state == "race": game.elapsed += dt
 	game.boost = maxf(0, game.boost - dt)
 	game.slow = maxf(0, game.slow - dt)
-	game.feedback_time = maxf(0, game.feedback_time - dt)
 	game.jump_buffer = maxf(0, game.jump_buffer - dt)
 	game.coyote = 0.13 if game.player.is_on_floor() else maxf(0, game.coyote - dt)
-	if game.qte.tick(dt): return
+	game.qte.tick(dt)
 	var dive = Input.is_physical_key_pressed(KEY_SHIFT)
 	var x = float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
 	var z = float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN)) - float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))
 	var direction = Vector3(x, 0, z).normalized().rotated(Vector3.UP, game.yaw)
 	var index = game.tile_at(-game.player.position.z)
-	var speed = 5.0 if game.state == "explore" else 15.5
+	var speed = 4.0 if game.state == "bedroom" else (5.0 if game.state == "explore" else 15.5)
 	if game.boost > 0: speed += 7
 	if game.slow > 0: speed *= 0.55
 	var on_floor = game.player.is_on_floor()
@@ -30,7 +29,6 @@ func simulate(dt: float) -> void:
 		game.player.velocity.y = 10
 		game.jump_buffer = 0
 		game.coyote = 0
-		if game.state == "tutorial" and game.tutorial_step in [1, 5]: game.tutorial_did_action = true
 		game.beep(460)
 	var glide = Input.is_physical_key_pressed(KEY_SPACE) and game.player.velocity.y < 0 and not dive and not on_floor
 	game.player.velocity.y -= (5 if glide else 26) * dt
@@ -41,19 +39,20 @@ func simulate(dt: float) -> void:
 	var landed_index = game.tile_at(-game.player.position.z)
 	game.environment.react_to_landing(landed_index, impact)
 	game.environment.tick_platforms(dt)
-	if game.state == "explore":
+	if game.state == "bedroom":
+		game.player.position.x = clampf(game.player.position.x, 995.4, 1004.6)
+		game.player.position.z = clampf(game.player.position.z, -4.9, 8.5)
+	elif game.state == "explore":
 		game.player.position.x = clampf(game.player.position.x, -12, 12)
-		game.player.position.z = clampf(game.player.position.z, 0.8, 18)
-		if Vector2(game.player.position.x - game.tape.position.x, game.player.position.z - game.tape.position.z).length() < 0.85 and absf(game.player.position.y - game.tape.position.y) < 1.0: game.trigger_tape()
-	elif game.state == "tutorial":
-		game.check_lesson(dt, glide, dive, index)
+		game.player.position.z = clampf(game.player.position.z, 1000.8, 1018)
+		if not game.tape_revealed and game.player.position.z <= 1011.5: game.opening_sequence.reveal_tape()
 	elif game.state == "race":
 		game.update_ghost(dt)
 		if game.player.position.y < -22: game.finish(false, "You fell between the fragments of your memories.")
 		elif -game.player.position.z >= game.FINISH: game.finish(true, "Your double stays behind. This life is still yours.")
 		elif game.ghost_distance >= game.FINISH: game.finish(false, "Someone else wakes up wearing your face.")
 	if game.state == "explore" and game.player.position.y < -10:
-		game.player.position = Vector3(0, 0.2, 13)
+		game.player.position = Vector3(0, 0.2, 1016)
 		game.player.velocity = Vector3.ZERO
 
 func update_camera(dt: float) -> void:
@@ -72,7 +71,7 @@ func update_camera(dt: float) -> void:
 			arm.rotation.x = lerpf(arm.rotation.x, -0.9 + stride, minf(dt * 10, 1))
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and (game.state == "explore" or game.state == "race" or (game.state == "tutorial" and not game.tutorial_waiting)):
+	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and game.state in ["bedroom", "explore", "race"]:
 		game.yaw -= event.relative.x * 0.0022
 		game.pitch = clampf(game.pitch - event.relative.y * 0.0022, -1.35, 1.35)
 	if event is InputEventMouseButton and event.pressed and game.state != "paused": Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -98,10 +97,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if game.state == "result" and key == KEY_ENTER:
 		game.begin_sleep()
 		return
-	if game.state == "tutorial" and game.tutorial_waiting:
-		if key == KEY_ENTER: game.begin_lesson_attempt()
+	if key == KEY_E and game.state in ["bedroom", "explore"]:
+		game.opening_sequence.interact()
 		return
-	if game.state not in ["explore", "tutorial", "race"]: return
+	if game.state not in ["bedroom", "explore", "race"]: return
 	if key == KEY_SPACE: game.jump_buffer = 0.16
 	if game.qte_time > 0 and key in game.KEYS: game.resolve_qte(key == game.qte_key)
 

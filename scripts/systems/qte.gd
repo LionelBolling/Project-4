@@ -6,8 +6,7 @@ var game
 func setup(context: Node3D) -> void:
 	game = context
 
-## Returns true when the tutorial was stopped by a failed attempt.
-func tick(dt: float) -> bool:
+func tick(dt: float) -> void:
 	if game.state == "race" and game.elapsed >= game.next_qte and game.qte_time <= 0:
 		game.qte_time = 2
 		game.qte_key = game.KEYS[randi() % 4]
@@ -17,16 +16,9 @@ func tick(dt: float) -> bool:
 		game.qte_time -= dt
 		if game.qte_time <= 0:
 			game.resolve_qte(false)
-			return game.state == "tutorial"
-	return false
 
 func resolve_qte(success: bool) -> void:
 	game.apply_qte_result(success)
-	if game.state == "tutorial" and game.tutorial_step == 6:
-		if success: game.complete_lesson()
-		else:
-			game.tutorial_waiting = true
-			game.tutorial_label.text = "THE DOUBLE GOT IN. TRY AGAIN.\nPress only the displayed key within two seconds.\nENTER to retry. You cannot skip this lesson."
 
 func apply_qte_result(success: bool) -> void:
 	game.qte_time = 0
