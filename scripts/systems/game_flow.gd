@@ -54,12 +54,7 @@ func reset_race() -> void:
 	game.coyote = 0
 	game.jump_buffer = 0
 	game.won = false
-	for p in game.platforms:
-		p.corrupt = false
-		p.collapse = -1.0
-		p.body.position.y = p.y - 0.6
-		p.col.set_deferred("disabled", false)
-		p.mesh.material_override = game.material(Color("6a5942") if p.kind == 3 else (Color("573b50") if p.kind == 2 else Color("263d51")))
+	game.environment.reset_platforms()
 	game.yaw = 0
 	game.pitch = 0
 	game.camera.position = game.player.position + Vector3(0, 1.66, 0)
