@@ -15,6 +15,11 @@ func _build_lighting() -> void:
 	world.background_mode = Environment.BG_SKY
 	world.sky = Sky.new()
 	world.sky.sky_material = ProceduralSkyMaterial.new()
+	world.glow_enabled = true
+	world.glow_intensity = 1.15
+	world.glow_strength = 1.25
+	world.glow_bloom = 0.12
+	world.glow_hdr_threshold = 0.8
 	world.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	world.ambient_light_color = Color("8074b8")
 	world.ambient_light_energy = 0.55
@@ -31,24 +36,25 @@ func _build_course() -> void:
 	var neon_cyan := _mat(Color("1fe5dd"), 1.2)
 	var neon_pink := _mat(Color("fa45b8"), 1.0)
 	var gold := _mat(Color("ffc857"), 0.8)
-	# Wide spawn apron leads straight into a long acceleration runway.
-	_solid(Vector3(0, -0.12, 14), Vector3(24, 0.24, 28), floor_mat)
+	# Large open plaza for free movement, stopping, turning, and direction changes.
+	# It connects directly to the straight acceleration runway and platform route.
+	_solid(Vector3(0, -0.12, 17), Vector3(64, 0.24, 58), floor_mat)
 	_solid(Vector3(0, 0.02, -17), Vector3(8, 0.08, 38), _mat(Color("39275e")))
 	for x in [-4.1, 4.1]:
 		_solid(Vector3(x, 0.12, -17), Vector3(0.16, 0.14, 38), neon_cyan)
 
-	# A single straight line of platforms: alternating heights, widths, and gaps.
+	# A single straight line of platforms with wider jumps, including a long glide gap.
 	var platforms := [
-		[Vector3(0, 0.25, -40), Vector3(7.0, 0.5, 7.0), gold],
-		[Vector3(0, 0.85, -48), Vector3(7.0, 0.5, 6.0), neon_pink],
-		[Vector3(0, 1.55, -56), Vector3(7.5, 0.5, 6.0), neon_cyan],
-		[Vector3(0, 0.55, -64), Vector3(8.0, 0.5, 7.0), gold],
-		[Vector3(0, 1.4, -74), Vector3(7.0, 0.5, 6.5), neon_pink],
-		[Vector3(0, 2.15, -86), Vector3(7.5, 0.5, 7.0), neon_cyan],
-		[Vector3(0, 0.3, -97), Vector3(9.0, 0.5, 8.0), gold],
-		[Vector3(0, 1.1, -107), Vector3(7.0, 0.5, 6.5), neon_pink],
-		[Vector3(0, 2.0, -117), Vector3(8.0, 0.5, 7.0), neon_cyan],
-		[Vector3(0, 0.4, -128), Vector3(10.0, 0.5, 9.0), gold],
+		[Vector3(0, 0.25, -41), Vector3(7.0, 0.5, 7.0), gold],
+		[Vector3(0, 0.85, -52), Vector3(7.0, 0.5, 6.0), neon_pink],
+		[Vector3(0, 1.55, -64), Vector3(7.5, 0.5, 6.0), neon_cyan],
+		[Vector3(0, 0.55, -76), Vector3(8.0, 0.5, 7.0), gold],
+		[Vector3(0, 1.4, -90), Vector3(7.0, 0.5, 6.5), neon_pink],
+		[Vector3(0, 2.15, -104), Vector3(7.5, 0.5, 7.0), neon_cyan],
+		[Vector3(0, 0.3, -118), Vector3(9.0, 0.5, 8.0), gold],
+		[Vector3(0, 1.1, -132), Vector3(7.0, 0.5, 6.5), neon_pink],
+		[Vector3(0, 2.0, -146), Vector3(8.0, 0.5, 7.0), neon_cyan],
+		[Vector3(0, 0.4, -160), Vector3(10.0, 0.5, 9.0), gold],
 	]
 	for platform in platforms:
 		_solid(platform[0], platform[1], platform[2])
@@ -57,19 +63,19 @@ func _build_course() -> void:
 	var walls := [
 		[Vector3(-4.8, 4.0, -18), Vector3(0.5, 8.0, 40.0), neon_cyan],
 		[Vector3(4.8, 4.0, -18), Vector3(0.5, 8.0, 40.0), neon_pink],
-		[Vector3(-4.8, 4.0, -43), Vector3(0.5, 8.0, 13.0), neon_cyan],
-		[Vector3(4.8, 4.0, -52), Vector3(0.5, 8.0, 13.0), neon_pink],
-		[Vector3(-4.8, 4.0, -62), Vector3(0.5, 8.0, 13.0), neon_cyan],
-		[Vector3(4.8, 4.0, -72), Vector3(0.5, 8.0, 15.0), neon_pink],
-		[Vector3(-4.8, 4.0, -83), Vector3(0.5, 8.0, 15.0), neon_cyan],
-		[Vector3(4.8, 4.0, -95), Vector3(0.5, 8.0, 15.0), neon_pink],
-		[Vector3(-4.8, 4.0, -106), Vector3(0.5, 8.0, 15.0), neon_cyan],
-		[Vector3(4.8, 4.0, -119), Vector3(0.5, 8.0, 15.0), neon_pink],
+		[Vector3(-4.8, 4.0, -48), Vector3(0.5, 8.0, 14.0), neon_cyan],
+		[Vector3(4.8, 4.0, -62), Vector3(0.5, 8.0, 14.0), neon_pink],
+		[Vector3(-4.8, 4.0, -76), Vector3(0.5, 8.0, 14.0), neon_cyan],
+		[Vector3(4.8, 4.0, -90), Vector3(0.5, 8.0, 14.0), neon_pink],
+		[Vector3(-4.8, 4.0, -104), Vector3(0.5, 8.0, 14.0), neon_cyan],
+		[Vector3(4.8, 4.0, -118), Vector3(0.5, 8.0, 14.0), neon_pink],
+		[Vector3(-4.8, 4.0, -132), Vector3(0.5, 8.0, 14.0), neon_cyan],
+		[Vector3(4.8, 4.0, -146), Vector3(0.5, 8.0, 14.0), neon_pink],
 	]
 	for wall in walls:
 		_solid(wall[0], wall[1], wall[2])
 
-	_caption("RUN + TURN AREA", Vector3(0, 2.0, 5), Color("55f5e0"))
+	_caption("OPEN RUN + TURN AREA", Vector3(0, 2.0, 34), Color("55f5e0"))
 	_caption("JUMP PLATFORMS", Vector3(0, 3.1, -39), Color("ffc857"))
 	_caption("LEFT WALL RUN", Vector3(-4.2, 5.5, -45), Color("75e9ff"))
 	_caption("RIGHT WALL RUN", Vector3(4.2, 5.5, -63), Color("fa76ca"))
