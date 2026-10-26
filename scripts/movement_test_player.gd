@@ -45,6 +45,10 @@ class_name MovementTestPlayer
 @export var glide_delay := 0.10
 @export var glide_max_duration := 3.5
 @export_range(0.5, 5.0, 0.1) var glide_start_animation_speed := 3.0
+@export_group("Boombox beat")
+@export_range(0.2, 1.5, 0.01) var speaker_beat_period := 0.5
+@export_range(0.0, 0.8, 0.01) var speaker_pulse_amount := 0.32
+@export_range(0.05, 0.4, 0.01) var speaker_pulse_rise_fraction := 0.16
 @export var mouse_sensitivity := 0.0025
 @export var fall_reset_height := -18.0
 @export_range(0.0, 0.4, 0.01) var landing_squash_strength := 0.18
@@ -81,6 +85,7 @@ var wall_jump_animation_active := false
 var wall_jump_animation_name := "wallRunRightJump"
 var glide_timer := 0.0
 var glide_animation_active := false
+var glide_press_armed := false
 var air_time := 0.0
 var was_airborne := false
 var previous_state := ""
@@ -96,18 +101,59 @@ var base_visual_scale := Vector3.ONE
 var body_scale_effect := Vector3.ZERO
 var body_scale_velocity := Vector3.ZERO
 var wall_impact_cooldown := 0.0
+var cyan_glide_points := PackedVector3Array()
+var pink_glide_points := PackedVector3Array()
+var cyan_glide_mesh: ImmediateMesh
+var pink_glide_mesh: ImmediateMesh
+var cyan_glide_material: StandardMaterial3D
+var pink_glide_material: StandardMaterial3D
+var glide_trail_fade := 0.0
+var last_glide_trail_origin := ""
+var boombox_root: Node3D
+var speaker_pivots: Array[Node3D] = []
+var speaker_base_scales: Array[Vector3] = []
+var speaker_beat_time := 0.0
 
 func _ready() -> void:
 	spawn_position = global_position
 	base_visual_scale = visual.scale
+	boombox_root = visual.find_child("Boombox_Root", true, false) as Node3D
+	if boombox_root != null:
+		for pivot_name in ["Boombox_SpeakerPivot_L", "Boombox_SpeakerPivot_R"]:
+			var pivot := boombox_root.find_child(pivot_name, true, false) as Node3D
+			if pivot != null:
+				speaker_pivots.append(pivot)
+				speaker_base_scales.append(pivot.scale)
 	_register_inputs()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	var players := visual.find_children("*", "AnimationPlayer", true, false)
 	if not players.is_empty():
 		anim = players[0] as AnimationPlayer
 		_create_mirrored_wall_jump_animation()
+		_create_mirrored_wall_run_animation()
 		_ensure_wall_run_animation_loops()
+	_create_glide_light_trails()
 	_set_animation("Idle")
+
+func _process(delta: float) -> void:
+	_update_boombox_beat(delta)
+
+func _update_boombox_beat(delta: float) -> void:
+	if speaker_pivots.is_empty():
+		return
+	speaker_beat_time = fposmod(speaker_beat_time + delta, maxf(speaker_beat_period, 0.01))
+	var phase := speaker_beat_time / maxf(speaker_beat_period, 0.01)
+	var pulse: float
+	if phase < speaker_pulse_rise_fraction:
+		var rise := phase / maxf(speaker_pulse_rise_fraction, 0.01)
+		pulse = 1.0 - pow(1.0 - rise, 3.0)
+	else:
+		var decay := (phase - speaker_pulse_rise_fraction) / (1.0 - speaker_pulse_rise_fraction)
+		pulse = pow(1.0 - decay, 1.7)
+	for index in range(speaker_pivots.size()):
+		var pivot := speaker_pivots[index]
+		if is_instance_valid(pivot):
+			pivot.scale = speaker_base_scales[index] * (1.0 + speaker_pulse_amount * pulse)
 
 func _register_inputs() -> void:
 	var bindings := {
@@ -157,7 +203,9 @@ func _physics_process(delta: float) -> void:
 	if grounded:
 		coyote_timer = coyote_seconds
 		air_time = 0.0
+		glide_timer = 0.0
 		glide_used_this_air = false
+		glide_press_armed = false
 		if was_airborne and state != "DIVING":
 			if landed_from_glide:
 				state = "LANDING"
@@ -186,6 +234,8 @@ func _physics_process(delta: float) -> void:
 	else:
 		coyote_timer = maxf(0.0, coyote_timer - delta)
 		air_time += delta
+		if Input.is_action_just_pressed("glide"):
+			glide_press_armed = true
 		was_airborne = true
 	if state == "DIVE_LANDING" and grounded and jump_buffer > 0.0 and _is_near_animation_end("diveLand", dive_land_jump_cancel_window) and _can_restore_capsule():
 		jump_buffer = 0.0
@@ -202,6 +252,7 @@ func _physics_process(delta: float) -> void:
 	cam_right = cam_right.normalized()
 	var wish_dir := (cam_right * input_2d.x + cam_forward * -input_2d.y).normalized()
 	var glide_held := Input.is_action_pressed("glide")
+	var glide_landing_locked := state == "LANDING" and _is_animation_playing("glideLand")
 	if jump_pending:
 		jump_start_timer = maxf(0.0, jump_start_timer - delta)
 		if jump_start_timer <= 0.0:
@@ -210,9 +261,9 @@ func _physics_process(delta: float) -> void:
 			state = "JUMPING"
 			_set_animation("jumpRise")
 
-	if Input.is_action_just_pressed("dive") and dive_lockout <= 0.0 and state not in ["DIVING", "DIVE_LANDING", "GLIDING", "WALL_RUNNING", "WALL_SLIDING"]:
+	if not glide_landing_locked and Input.is_action_just_pressed("dive") and dive_lockout <= 0.0 and state not in ["DIVING", "DIVE_LANDING", "GLIDING", "WALL_RUNNING", "WALL_SLIDING"]:
 		_begin_dive(wish_dir)
-	if jump_buffer > 0.0 and coyote_timer > 0.0 and state not in ["DIVING", "DIVE_LANDING", "WALL_RUNNING", "WALL_SLIDING"] and not jump_pending:
+	if not glide_landing_locked and jump_buffer > 0.0 and coyote_timer > 0.0 and state not in ["DIVING", "DIVE_LANDING", "WALL_RUNNING", "WALL_SLIDING"] and not jump_pending:
 		jump_buffer = 0.0
 		coyote_timer = 0.0
 		if grounded:
@@ -234,11 +285,12 @@ func _physics_process(delta: float) -> void:
 				state = "FALLING"
 				if not glide_animation_active:
 					_set_animation("jumpFall")
-		elif glide_held and air_time >= glide_delay and glide_timer < glide_max_duration and not glide_used_this_air and not wall_jump_animation_active:
+		elif glide_held and glide_press_armed and air_time >= glide_delay and glide_timer < glide_max_duration and not glide_used_this_air and not wall_jump_animation_active:
 			var was_diving := state == "DIVING"
 			state = "GLIDING"
 			glide_timer = 0.0
 			glide_used_this_air = true
+			glide_press_armed = false
 			glide_animation_active = true
 			if was_diving:
 				dive_timer = 0.0
@@ -256,7 +308,12 @@ func _physics_process(delta: float) -> void:
 			_try_wall_run(wish_dir)
 
 	var horizontal := Vector3(velocity.x, 0, velocity.z)
-	if state == "DIVING":
+	if state == "LANDING" and _is_animation_playing("glideLand"):
+		# Keep the glide landing pose unobstructed and hold the player in place
+		# until its full recovery animation has finished.
+		horizontal = Vector3.ZERO
+		velocity.y = 0.0
+	elif state == "DIVING":
 		if dive_timer > 0.0:
 			dive_timer = maxf(0.0, dive_timer - delta)
 			var dive_dir := Vector3(velocity.x, 0, velocity.z).normalized()
@@ -362,6 +419,7 @@ func _physics_process(delta: float) -> void:
 			_abort_dive_landing_to_fall()
 		elif anim == null or not anim.is_playing():
 			_finish_dive_landing(delta)
+	_update_glide_light_trails()
 	_update_animation(input_2d)
 	_update_body_scale(delta)
 	if status_label != null:
@@ -484,6 +542,7 @@ func _respawn_at_start() -> void:
 	wall_jump_animation_active = false
 	glide_timer = 0.0
 	glide_animation_active = false
+	glide_press_armed = false
 	glide_used_this_air = false
 	was_airborne = false
 	visual.position = Vector3.ZERO
@@ -567,7 +626,7 @@ func _try_wall_run(wish_dir: Vector3) -> void:
 			state = "WALL_RUNNING"
 			glide_animation_active = false
 			velocity.y = 0.0
-			_set_animation("wallRunRight")
+			_set_animation("wallRunRightMirrored" if side > 0 else "wallRunRight")
 			return
 
 func _wall_still_near() -> bool:
@@ -580,11 +639,146 @@ func _update_glide_animation() -> void:
 	if glide_animation_active and not is_on_floor() and not _is_animation_playing("glideStart") and anim != null and not _is_animation_playing("glideFloat"):
 		_set_animation("glideFloat")
 
+func _create_glide_light_trails() -> void:
+	cyan_glide_material = _make_glide_trail_material(Color("31e9ff"))
+	pink_glide_material = _make_glide_trail_material(Color("ff3fc8"))
+	cyan_glide_mesh = _make_glide_trail_mesh("CyanGlideTrail")
+	pink_glide_mesh = _make_glide_trail_mesh("PinkGlideTrail")
+
+func _make_glide_trail_material(tint: Color) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.vertex_color_use_as_albedo = true
+	material.albedo_color = tint
+	material.emission_enabled = true
+	material.emission = tint
+	material.emission_energy_multiplier = 3.0
+	return material
+
+func _make_glide_trail_mesh(node_name: String) -> ImmediateMesh:
+	var ribbon := ImmediateMesh.new()
+	var instance := MeshInstance3D.new()
+	instance.name = node_name
+	instance.top_level = true
+	instance.mesh = ribbon
+	add_child(instance)
+	return ribbon
+
+func _update_glide_light_trails() -> void:
+	# The glide pose and enlarged boombox can continue after releasing Shift,
+	# so keep the trail attached to the glider until that pose ends at landing.
+	var gliding := not is_on_floor() and (glide_animation_active or _is_animation_playing("glideStart") or _is_animation_playing("glideFloat"))
+	var active := state in ["RUNNING", "JUMPING", "FALLING", "DIVING", "DIVE_LANDING", "WALL_RUNNING", "GLIDING"] or gliding
+	if gliding != (last_glide_trail_origin == "glider") and not last_glide_trail_origin.is_empty():
+		cyan_glide_points.clear()
+		pink_glide_points.clear()
+	last_glide_trail_origin = "glider" if gliding else "back"
+	if active:
+		glide_trail_fade = 1.0
+		var motion_direction := Vector3(velocity.x, 0.0, velocity.z).normalized()
+		if motion_direction.length_squared() < 0.001:
+			motion_direction = visual.global_basis.z.normalized()
+		var trail_origins := _get_boombox_trail_origins(motion_direction)
+		cyan_glide_points = _append_glide_trail_point(cyan_glide_points, trail_origins[0], motion_direction)
+		pink_glide_points = _append_glide_trail_point(pink_glide_points, trail_origins[1], motion_direction)
+	else:
+		glide_trail_fade = maxf(0.0, glide_trail_fade - get_physics_process_delta_time() * 2.5)
+	if glide_trail_fade <= 0.0:
+		cyan_glide_points.clear()
+		pink_glide_points.clear()
+	_draw_glide_ribbon(cyan_glide_mesh, cyan_glide_points, cyan_glide_material, 0.045)
+	_draw_glide_ribbon(pink_glide_mesh, pink_glide_points, pink_glide_material, 0.045)
+
+func _get_boombox_trail_origins(motion_direction: Vector3) -> Array[Vector3]:
+	var backward := -motion_direction.normalized()
+	var side := motion_direction.cross(Vector3.UP).normalized()
+	if side.length_squared() < 0.001:
+		side = visual.global_basis.x.normalized()
+	if boombox_root != null and is_instance_valid(boombox_root):
+		var bounds := AABB()
+		var found_mesh := false
+		for mesh_instance in boombox_root.find_children("*", "MeshInstance3D", true, false):
+			var mesh := mesh_instance as MeshInstance3D
+			if mesh.mesh == null:
+				continue
+			var world_bounds: AABB = mesh.global_transform * mesh.get_aabb()
+			bounds = world_bounds if not found_mesh else bounds.merge(world_bounds)
+			found_mesh = true
+		if found_mesh:
+			var center := bounds.get_center()
+			var extent := bounds.size * 0.5
+			var surface_distance := INF
+			for axis in 3:
+				var direction_component := absf(backward[axis])
+				if direction_component > 0.001:
+					surface_distance = minf(surface_distance, extent[axis] / direction_component)
+			if is_finite(surface_distance):
+				# Keep the emitter just inside the boombox surface to hide any seam.
+				var source := center + backward * surface_distance * 0.96
+				return [source - side * 0.09, source + side * 0.09]
+	# Fallback for a model variant whose imported node names differ.
+	var fallback := visual.to_global(Vector3(0.0, 1.0, -0.35))
+	return [fallback - side * 0.09, fallback + side * 0.09]
+
+func _append_glide_trail_point(points: PackedVector3Array, point: Vector3, motion_direction: Vector3) -> PackedVector3Array:
+	if points.is_empty():
+		# Seed the ribbon at the boombox and extend it backward so it is already
+		# visibly attached on the first frame it appears.
+		for step in range(9):
+			var progress := float(step) / 8.0
+			points.append(point - motion_direction * 0.65 * (1.0 - progress))
+		return points
+	if points[points.size() - 1].distance_to(point) > 0.025:
+		points.append(point)
+	while points.size() > 48:
+		points.remove_at(0)
+	return points
+
+func _draw_glide_ribbon(ribbon: ImmediateMesh, points: PackedVector3Array, material: StandardMaterial3D, width: float) -> void:
+	if ribbon == null:
+		return
+	ribbon.clear_surfaces()
+	if points.size() < 2 or glide_trail_fade <= 0.0:
+		return
+	ribbon.surface_begin(Mesh.PRIMITIVE_TRIANGLES, material)
+	for index in range(points.size() - 1):
+		var start := points[index]
+		var finish := points[index + 1]
+		var direction := (finish - start).normalized()
+		var view_direction := (camera.global_position - (start + finish) * 0.5).normalized()
+		var side := direction.cross(view_direction).normalized()
+		if side.length_squared() < 0.001:
+			side = Vector3.UP.cross(direction).normalized()
+		if side.length_squared() < 0.001:
+			side = Vector3.RIGHT
+		var segment_fade := lerpf(0.08, 0.9, float(index + 1) / float(points.size() - 1)) * glide_trail_fade
+		var segment_width := lerpf(width * 0.35, width, float(index + 1) / float(points.size() - 1))
+		var offset := side * segment_width
+		ribbon.surface_set_color(Color(1.0, 1.0, 1.0, segment_fade))
+		ribbon.surface_add_vertex(start - offset)
+		ribbon.surface_add_vertex(start + offset)
+		ribbon.surface_add_vertex(finish + offset)
+		ribbon.surface_add_vertex(start - offset)
+		ribbon.surface_add_vertex(finish + offset)
+		ribbon.surface_add_vertex(finish - offset)
+	ribbon.surface_end()
+
 func _update_animation(input_2d: Vector2) -> void:
 	if dive_jump_animation_active:
 		dive_jump_animation_active = false
 		return
 	if is_on_floor() and state == "LANDING":
+		# Glide landing is a full recovery animation and stays in place until it ends.
+		if _is_animation_playing("glideLand"):
+			return
+		# Give active ground movement priority over the landing clip. If the
+		# player is already moving when they touch down, resume Run immediately.
+		if input_2d.length() > 0.05:
+			state = "RUNNING"
+			_set_animation("Run")
+			return
 		if anim == null or not anim.is_playing():
 			state = "RUNNING" if Vector2(velocity.x, velocity.z).length() > 0.35 and input_2d.length() > 0.05 else "IDLE"
 			_set_animation("Run" if state == "RUNNING" else "Idle")
@@ -617,7 +811,7 @@ func _set_animation(name: String) -> void:
 	var playback_speed := 1.0
 	if name == "Run":
 		playback_speed = run_animation_speed_multiplier
-	elif name == "wallRunRight":
+	elif name in ["wallRunRight", "wallRunRightMirrored"]:
 		playback_speed = wall_run_animation_speed
 	elif name == "jumpStart":
 		playback_speed = jump_start_animation_speed_multiplier
@@ -662,8 +856,37 @@ func _create_mirrored_wall_jump_animation() -> void:
 func _ensure_wall_run_animation_loops() -> void:
 	if anim == null or not anim.has_animation("wallRunRight"):
 		return
-	var wall_run_clip := anim.get_animation("wallRunRight")
-	wall_run_clip.loop_mode = Animation.LOOP_LINEAR
+	for clip_name in ["wallRunRight", "wallRunRightMirrored"]:
+		if anim.has_animation(clip_name):
+			anim.get_animation(clip_name).loop_mode = Animation.LOOP_LINEAR
+
+func _create_mirrored_wall_run_animation() -> void:
+	if anim == null or not anim.has_animation("wallRunRight") or anim.has_animation("wallRunRightMirrored"):
+		return
+	var mirrored := anim.get_animation("wallRunRight").duplicate(true) as Animation
+	_mirror_animation_tracks(mirrored)
+	var mirror_library := AnimationLibrary.new()
+	var result := mirror_library.add_animation("wallRunRightMirrored", mirrored)
+	if result != OK:
+		push_warning("Could not create mirrored right wall-run animation: %s" % error_string(result))
+		return
+	result = anim.add_animation_library("WallRunMirror", mirror_library)
+	if result != OK:
+		push_warning("Could not register mirrored right wall-run animation: %s" % error_string(result))
+
+func _mirror_animation_tracks(mirrored: Animation) -> void:
+	for track in range(mirrored.get_track_count()):
+		var path_text := str(mirrored.track_get_path(track))
+		if not path_text.contains("Skeleton3D:"):
+			continue
+		path_text = path_text.replace(".L", ".TMP_SIDE").replace(".R", ".L").replace(".TMP_SIDE", ".R")
+		mirrored.track_set_path(track, NodePath(path_text))
+		for key in range(mirrored.track_get_key_count(track)):
+			var value: Variant = mirrored.track_get_key_value(track, key)
+			if mirrored.track_get_type(track) == Animation.TYPE_POSITION_3D and value is Vector3:
+				mirrored.track_set_key_value(track, key, Vector3(-value.x, value.y, value.z))
+			elif mirrored.track_get_type(track) == Animation.TYPE_ROTATION_3D and value is Quaternion:
+				mirrored.track_set_key_value(track, key, Quaternion(value.x, -value.y, -value.z, value.w).normalized())
 
 func _is_animation_playing(name: String) -> bool:
 	if anim == null or not anim.is_playing():

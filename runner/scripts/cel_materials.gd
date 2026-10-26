@@ -29,7 +29,15 @@ static func apply(root: Node, enabled: bool = true) -> void:
 			if source.albedo_texture != null:
 				material.set_shader_parameter("paint_texture", source.albedo_texture)
 			var label := source.resource_name.to_lower()
-			material.set_shader_parameter("flat_painted_detail", "ivory painted highlight" in label or "drawn highlight" in label)
+			var flat_detail := "ivory painted highlight" in label or "drawn highlight" in label
+			material.set_shader_parameter("flat_painted_detail", flat_detail)
+			var neon_surface := (
+				"cyan panels" in label or "purple cone facet" in label or "reference purple" in label
+				or "electric magenta" in label or "bright edge" in label or "cyan rubber" in label or "cyan side panels" in label
+			)
+			var jacket_surface := "electric magenta" in label and str(mesh.name).begins_with("Jacket")
+			var emission_strength := 1.1 if jacket_surface else 2.4 if neon_surface else 1.0 if flat_detail else 0.34
+			material.set_shader_parameter("emission_strength", emission_strength)
 			mesh.set_surface_override_material(surface, material)
 
 static func _apply_editor_face(mesh: MeshInstance3D) -> void:
