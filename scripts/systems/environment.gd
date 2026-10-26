@@ -6,28 +6,81 @@ var game
 func setup(context: Node3D) -> void:
 	game = context
 
+const BOOST_BONUS = 6.0
+const ROUGH_MULTIPLIER = 0.78
+const HARD_LANDING_SPEED = 10.5
+const COLLAPSE_DELAY = 0.9
+const FALL_SPEED = 10.0
+
+func valid_platform(index: int) -> bool:
+	return index >= 0 and index < game.platforms.size()
+
+## Use actual floor contacts: distance alone also matches walls and off-track ground.
+func floor_platform() -> int:
+	if not game.player.is_on_floor(): return -1
+	for contact in range(game.player.get_slide_collision_count()):
+		var hit = game.player.get_slide_collision(contact)
+		if hit.get_normal().dot(game.player.up_direction) < cos(game.player.floor_max_angle): continue
+		var body = hit.get_collider()
+		for i in range(game.platforms.size()):
+			if game.platforms[i].body == body and game.platforms[i].collapse != 0: return i
+	return -1
+
 func surface_speed(speed: float, index: int, grounded: bool, diving: bool) -> float:
-	if index < 0 or not grounded: return speed
+	if not grounded or not valid_platform(index): return speed
 	var p = game.platforms[index]
-	if p.kind == 1 and not p.corrupt: speed += 6
-	if p.kind == 2 or p.corrupt: speed *= 0.78
+	if p.collapse == 0: return speed
+	if p.kind == 1 and not p.corrupt: speed += BOOST_BONUS
+	if p.kind == 2 or p.corrupt: speed *= ROUGH_MULTIPLIER
 	if diving and p.slope < 0: speed += 12
 	return speed
 
 func react_to_landing(index: int, impact: float) -> void:
-	if index < 0 or not game.player.is_on_floor(): return
+	if not valid_platform(index) or not game.player.is_on_floor(): return
+	if game.platforms[index].kind == 3 and impact > HARD_LANDING_SPEED:
+		if collapse_platform(index):
+			game.banner.text = "THIS MEMORY IS BREAKING. MOVE!"
+			game.feedback_time = 2
+
+## Idempotent so repeated ghost contacts cannot restart the countdown.
+func collapse_platform(index: int) -> bool:
+	if not valid_platform(index): return false
 	var p = game.platforms[index]
-	if p.kind == 3 and impact > 10.5 and p.collapse < 0:
-		p.collapse = 0.9
-		game.banner.text = "THIS MEMORY IS BREAKING. MOVE!"
-		game.feedback_time = 2
+	if p.collapse >= 0: return false
+	p.collapse = COLLAPSE_DELAY
+	return true
+
+func corrupt_platform(index: int) -> void:
+	if not valid_platform(index): return
+	var p = game.platforms[index]
+	if p.corrupt: return
+	p.corrupt = true
+	p.mesh.material_override = material(Color("42295f"), 0.25)
+	p.edge_mat.albedo_color = game.VIOLET
+	p.edge_mat.emission = game.VIOLET
+	if p.kind == 3: collapse_platform(index)
+
+func reset_platforms() -> void:
+	for p in game.platforms:
+		p.corrupt = false
+		p.collapse = -1.0
+		p.body.position = p.home
+		p.col.set_deferred("disabled", false)
+		p.mesh.material_override = p.base_material
+		p.edge_mat.albedo_color = p.edge_color
+		p.edge_mat.emission = p.edge_color
+		p.edge_mat.emission_energy_multiplier = 1.0
 
 func tick_platforms(dt: float) -> void:
+	if dt <= 0: return
 	for p in game.platforms:
 		if p.collapse > 0:
 			p.collapse = maxf(0, p.collapse - dt)
+			# Pulse the cracks and rails before the collision disappears.
+			p.edge_mat.emission_energy_multiplier = 1.0 + 2.0 * absf(sin(p.collapse * 24))
 			if p.collapse == 0: p.col.set_deferred("disabled", true)
-		if p.collapse == 0: p.body.position.y -= dt * 10
+		if p.collapse == 0:
+			p.body.position.y = maxf(p.home.y - 40, p.body.position.y - dt * FALL_SPEED)
 
 func material(color: Color, glow: float = 0.0) -> StandardMaterial3D:
 	var m = StandardMaterial3D.new()
@@ -92,7 +145,7 @@ func build_world() -> void:
 			for n in range(5):
 				var crack = game.box(body, Vector3(-3 + n * 1.5, 0.65, 0), Vector3(0.06, 0.04, 13), edge_mat)
 				crack.rotation.y = 0.3 * sin(n * 3)
-		game.platforms.append({"body": body, "mesh": mesh, "col": col, "start": z, "end": z + length, "kind": kind, "corrupt": false, "collapse": -1.0, "slope": slope, "y": center_y})
+		game.platforms.append({"body": body, "mesh": mesh, "col": col, "start": z, "end": z + length, "kind": kind, "corrupt": false, "collapse": -1.0, "slope": slope, "y": center_y, "home": body.position, "base_material": mesh.material_override, "edge_mat": edge_mat, "edge_color": color})
 		z += length + (2.5 if i > 0 else 0)
 	# Broad safe landing and the door back to reality.
 	var exit_body = StaticBody3D.new()

@@ -17,7 +17,7 @@ func simulate(dt: float) -> void:
 	var x = float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
 	var z = float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN)) - float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))
 	var direction = Vector3(x, 0, z).normalized().rotated(Vector3.UP, game.yaw)
-	var index = game.tile_at(-game.player.position.z)
+	var index = game.environment.floor_platform()
 	var speed = 4.0 if game.state == "bedroom" else (5.0 if game.state == "explore" else 15.5)
 	if game.boost > 0: speed += 7
 	if game.slow > 0: speed *= 0.55
@@ -36,8 +36,9 @@ func simulate(dt: float) -> void:
 	if dive: game.player.velocity.y -= 45 * dt
 	var impact = -game.player.velocity.y
 	game.player.move_and_slide()
-	var landed_index = game.tile_at(-game.player.position.z)
-	game.environment.react_to_landing(landed_index, impact)
+	var landed_index = game.environment.floor_platform()
+	if not on_floor:
+		game.environment.react_to_landing(landed_index, impact)
 	game.environment.tick_platforms(dt)
 	if game.state == "bedroom":
 		game.player.position.x = clampf(game.player.position.x, 995.4, 1004.6)

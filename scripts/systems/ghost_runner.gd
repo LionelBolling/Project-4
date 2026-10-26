@@ -16,8 +16,7 @@ func update_ghost(dt: float) -> void:
 		var p = game.platforms[gi]
 		gy = p.y + sin(p.slope) * (game.ghost_distance - (p.start + p.end) / 2)
 		if game.ghost_distance > p.start + 4 and not p.corrupt:
-			p.corrupt = true
-			p.mesh.material_override = game.material(Color("42295f"), 0.25)
+			game.environment.corrupt_platform(gi)
 	else: gy = 1.2
 	game.shadow.position = Vector3(1.7 * sin(game.ghost_distance * 0.035), gy + 0.04, -game.ghost_distance)
 	game.shadow.rotation.y = 0
