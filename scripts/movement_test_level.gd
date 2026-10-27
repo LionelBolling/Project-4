@@ -1,9 +1,14 @@
+@tool
 extends Node3D
 
 const PLAYER_SCRIPT = preload("res://scripts/movement_test_player.gd")
 const RUNNER = preload("res://runner/runner.tscn")
+var course_root: Node3D
 
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		_build_course()
+		return
 	_build_lighting()
 	_build_course()
 	_build_player()
@@ -32,6 +37,13 @@ func _build_lighting() -> void:
 	add_child(sun)
 
 func _build_course() -> void:
+	if has_node("CourseGeometry"):
+		course_root = get_node("CourseGeometry") as Node3D
+		return
+	course_root = Node3D.new()
+	course_root.name = "CourseGeometry"
+	add_child(course_root)
+	_assign_editor_owner(course_root)
 	var floor_mat := _mat(Color("252044"))
 	var neon_cyan := _mat(Color("1fe5dd"), 1.2)
 	var neon_pink := _mat(Color("fa45b8"), 1.0)
@@ -146,18 +158,29 @@ func _build_hud() -> void:
 func _solid(pos: Vector3, size: Vector3, material: Material) -> void:
 	var body := StaticBody3D.new()
 	body.position = pos
-	add_child(body)
+	var kind := "Wall" if size.y >= 4.0 and size.x < 1.0 else "Floor" if size.y < 0.25 else "Platform"
+	var kind_count := 1
+	for sibling in course_root.get_children():
+		if sibling is StaticBody3D and str(sibling.name).begins_with(kind + "_"):
+			kind_count += 1
+	body.name = "%s_%02d" % [kind, kind_count]
+	course_root.add_child(body)
+	_assign_editor_owner(body)
 	var mesh := BoxMesh.new()
 	mesh.size = size
 	var visual := MeshInstance3D.new()
+	visual.name = "Mesh"
 	visual.mesh = mesh
 	visual.material_override = material
 	body.add_child(visual)
+	_assign_editor_owner(visual)
 	var shape := BoxShape3D.new()
 	shape.size = size
 	var collision := CollisionShape3D.new()
+	collision.name = "CollisionShape3D"
 	collision.shape = shape
 	body.add_child(collision)
+	_assign_editor_owner(collision)
 
 func _mat(color: Color, glow := 0.0) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
@@ -171,6 +194,7 @@ func _mat(color: Color, glow := 0.0) -> StandardMaterial3D:
 
 func _caption(text: String, pos: Vector3, color: Color) -> void:
 	var label := Label3D.new()
+	label.name = text.to_pascal_case().replace(" ", "")
 	label.text = text
 	label.position = pos
 	label.font_size = 48
@@ -178,7 +202,14 @@ func _caption(text: String, pos: Vector3, color: Color) -> void:
 	label.modulate = color
 	label.outline_size = 8
 	label.outline_modulate = Color("171326")
-	add_child(label)
+	course_root.add_child(label)
+	_assign_editor_owner(label)
+
+func _assign_editor_owner(node: Node) -> void:
+	if Engine.is_editor_hint():
+		var scene_root := get_tree().edited_scene_root
+		if scene_root != null:
+			node.owner = scene_root
 
 func _panel_style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()

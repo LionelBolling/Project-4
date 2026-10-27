@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://enemy_runner/scripts/enemy_character.gd" id="1"]
+[ext_resource type="PackedScene" path="res://enemy_runner/assets/enemy_runner.glb" id="2"]
+
+[node name="EnemyRunner" type="Node3D"]
+script = ExtResource("1")
+belt_physics_enabled = true
+autoplay_animation = &"Idle"
+
+[node name="Model" parent="." instance=ExtResource("2")]

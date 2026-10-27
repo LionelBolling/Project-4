@@ -1,0 +1,11 @@
+; Character asset package. No test scene, camera, level or gameplay controller.
+config_version=5
+
+[application]
+config/name="Enemy Runner Godot Ready"
+config/features=PackedStringArray("4.5", "GL Compatibility")
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+shading/overrides/force_vertex_shading=false

@@ -1,0 +1,177 @@
+{
+  "package": "runnerGodotReady",
+  "godot_minimum": "4.5",
+  "runtime_joint_count": 47,
+  "gameplay_animation_count": 15,
+  "gameplay_animations": [
+    "dive",
+    "diveLand",
+    "glideFloat",
+    "glideLand",
+    "glideStart",
+    "hurt",
+    "Idle",
+    "jumpFall",
+    "jumpLand",
+    "jumpRise",
+    "jumpStart",
+    "Run",
+    "Stop",
+    "wallRunRight",
+    "wallRunRightJump"
+  ],
+  "looping_animations": [
+    "Idle",
+    "Run",
+    "dive",
+    "glideFloat",
+    "jumpFall",
+    "wallRunRight"
+  ],
+  "face_texture_count": 9,
+  "source_blend": "F:\\CompHw\\project4\\RunnerCharacter\\blender\\runner.blend",
+  "source_blend_sha256": "dd1c9d950209c2b056c35ab260230fbc4b24bc6f337e0ac190debc9c11185ec7",
+  "source_blend_unchanged": true,
+  "editable_blend": "runner.blend",
+  "editable_blend_sha256": "2e83a9637f6f941eb7d74cc01187d09ed907239ee7094ed542c059a0af6a4266",
+  "blender_motion_start_frame": 0,
+  "godot_clip_start_seconds": 0,
+  "blender_fps": 30,
+  "t_pose_lead_in_added": false,
+  "original_motion_preserved": true,
+  "blender_reimport_verified": true,
+  "godot_engine_runtime_executed": false,
+  "tests_included": false,
+  "files": [
+    {
+      "path": "project.godot",
+      "bytes": 366,
+      "sha256": "c1a5ac6f6b8508160668ac1c11f2db18a115acbac5a339311c6467b3562b8751"
+    },
+    {
+      "path": "README.md",
+      "bytes": 7568,
+      "sha256": "87dec86b6de3d59be90de87181e1c43fa63e8029617ddb9e07b0324a554a8392"
+    },
+    {
+      "path": "runner/animations/animations.json",
+      "bytes": 2853,
+      "sha256": "1d7e9b98aad717cca641d981faa1ef71ae839b0cb2b5001e4e4f8118f4b770e0"
+    },
+    {
+      "path": "runner/animations/face_animation_tracks.json",
+      "bytes": 7904,
+      "sha256": "f791114101473b1036844ca4b9efa895d51b00db23e6d14091185eaa8eccb871"
+    },
+    {
+      "path": "runner/assets/belt_config.json",
+      "bytes": 1983,
+      "sha256": "8ba0f538b3a69768c40796fcc731a676b5f7d4446f0a8354f4e76350630bae28"
+    },
+    {
+      "path": "runner/assets/boombox.glb",
+      "bytes": 63380,
+      "sha256": "35f1e90789f543c06909cff81dda48bd4ac37e894c349401278197821d13e1d3"
+    },
+    {
+      "path": "runner/assets/runner.glb",
+      "bytes": 2946280,
+      "sha256": "96f0eee2b3faf5877b283ab9959da1ac731bb26184f42d07655eb896756611ea"
+    },
+    {
+      "path": "runner/boombox.tscn",
+      "bytes": 310,
+      "sha256": "b0dab02924394ec31b05ef0901e4596935caad4d9e21e79972c81f025ac536b1"
+    },
+    {
+      "path": "runner/materials/runner_cel.gdshader",
+      "bytes": 1072,
+      "sha256": "b15df6b258c15947dc29978156aa1b6a55c04f35e6dda15aeda5329a79a13b88"
+    },
+    {
+      "path": "runner/runner.tscn",
+      "bytes": 317,
+      "sha256": "bc1f10baf1f1e8bbf30b15c1c8277d128f00dbc207ddef82fba4c540d0aec896"
+    },
+    {
+      "path": "runner/scripts/belt_physics.gd",
+      "bytes": 5194,
+      "sha256": "c5eb4499a14a040fa2c290188dad114755b4da65e0a564f091497833d6efb4a8"
+    },
+    {
+      "path": "runner/scripts/boombox.gd",
+      "bytes": 403,
+      "sha256": "5434590b97dea066b6b8cae01a8afb4f3784b487cef924b3288d49ba2d942c91"
+    },
+    {
+      "path": "runner/scripts/cel_materials.gd",
+      "bytes": 2085,
+      "sha256": "7ad6d2ff8087c34cb0a6b9db7cb418f6000a9dac434d782eb86f758a7af8812f"
+    },
+    {
+      "path": "runner/scripts/face_animation_sync.gd",
+      "bytes": 1935,
+      "sha256": "0fa94524fb22dd8491dd65ab7976eea28664feac5dbb86f5a1c673ab0f1955d5"
+    },
+    {
+      "path": "runner/scripts/facial_controller.gd",
+      "bytes": 7767,
+      "sha256": "8e72ba38acab6e513f4a1f589d48b4dd0bd038c39a9acdaff90b182877aeae8c"
+    },
+    {
+      "path": "runner/scripts/runner_character.gd",
+      "bytes": 5822,
+      "sha256": "79697f4c31a6388ae55bcdd7824c6fbecb74a7b820808aaae68a8afb1d5f2f0f"
+    },
+    {
+      "path": "runner/textures/face/eyebrows/expressive.png",
+      "bytes": 24512,
+      "sha256": "f238d96c67d5994015ba00d72abc279acd2ebd9f8df12aefa97d00ef4821c737"
+    },
+    {
+      "path": "runner/textures/face/eyebrows/regular.png",
+      "bytes": 23066,
+      "sha256": "7cea11d08fb48cbee42815661ec13f2308976c7ab050a0eca3b1535b8431bb9c"
+    },
+    {
+      "path": "runner/textures/face/eyes/closed.png",
+      "bytes": 53725,
+      "sha256": "0b16883c3c471640d2c74110a22a85c3cbb879e5a30dacd21dc332cec8b3a00e"
+    },
+    {
+      "path": "runner/textures/face/eyes/neutral.png",
+      "bytes": 76383,
+      "sha256": "3197fdda7b3df4c5a9f6d219091173e7c9247bbf54c310959c43003c18334785"
+    },
+    {
+      "path": "runner/textures/face/eyes/surprised.png",
+      "bytes": 73730,
+      "sha256": "d7c69d78d37f24c3dccea7ae33f4023d57e26d3e663e590ef56b73d1db2eaa7e"
+    },
+    {
+      "path": "runner/textures/face/mouth/frown.png",
+      "bytes": 21348,
+      "sha256": "485584dc110491269bf591f555568bcb706d28023ea3c354f5fdf7286eaca109"
+    },
+    {
+      "path": "runner/textures/face/mouth/open.png",
+      "bytes": 36094,
+      "sha256": "7d19aab91639f001cfe26c28b85b69dd6ff53caedb34d157d09b9a18a417e59f"
+    },
+    {
+      "path": "runner/textures/face/mouth/smile.png",
+      "bytes": 18983,
+      "sha256": "bb9caf0b3088aeb1f217d1173734b1c242022810eac225cb0f1c3cb298aef0cb"
+    },
+    {
+      "path": "runner/textures/face/nose/regular.png",
+      "bytes": 13750,
+      "sha256": "6bcb8fe120be71bc94465deb3cd115a0bb0de63a79c426b0bcfd62100f9f0b5b"
+    },
+    {
+      "path": "runner.blend",
+      "bytes": 1789341,
+      "sha256": "2e83a9637f6f941eb7d74cc01187d09ed907239ee7094ed542c059a0af6a4266"
+    }
+  ]
+}

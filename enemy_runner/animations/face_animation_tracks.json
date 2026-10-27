@@ -1,0 +1,370 @@
+{
+  "version": 1,
+  "fps": 30.0,
+  "variants": {
+    "eyes": [
+      "neutral",
+      "closed",
+      "surprised"
+    ],
+    "eyebrows": [
+      "regular",
+      "expressive"
+    ],
+    "mouth": [
+      "smile",
+      "frown",
+      "open"
+    ]
+  },
+  "animations": {
+    "dive": {
+      "source_start_frame": 0,
+      "duration": 1.9666666666666666,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "closed",
+          "eyebrows": "regular",
+          "mouth": "open"
+        },
+        {
+          "time": 0.2,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "open"
+        }
+      ]
+    },
+    "diveLand": {
+      "source_start_frame": 0,
+      "duration": 2.2666666666666666,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "frown"
+        }
+      ]
+    },
+    "glideFloat": {
+      "source_start_frame": 0,
+      "duration": 1.9666666666666666,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        }
+      ]
+    },
+    "glideLand": {
+      "source_start_frame": 0,
+      "duration": 2.2666666666666666,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        },
+        {
+          "time": 0.1,
+          "eyes": "closed",
+          "eyebrows": "regular",
+          "mouth": "frown"
+        },
+        {
+          "time": 0.3,
+          "eyes": "surprised",
+          "eyebrows": "regular",
+          "mouth": "open"
+        },
+        {
+          "time": 1.1,
+          "eyes": "closed",
+          "eyebrows": "regular",
+          "mouth": "frown"
+        },
+        {
+          "time": 1.266667,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        }
+      ]
+    },
+    "glideStart": {
+      "source_start_frame": 0,
+      "duration": 1.9666666666666666,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        },
+        {
+          "time": 0.833333,
+          "eyes": "closed",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        },
+        {
+          "time": 1.2,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        }
+      ]
+    },
+    "hurt": {
+      "source_start_frame": 0,
+      "duration": 2.2666666666666666,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "closed",
+          "eyebrows": "regular",
+          "mouth": "frown"
+        },
+        {
+          "time": 0.333333,
+          "eyes": "surprised",
+          "eyebrows": "regular",
+          "mouth": "open"
+        },
+        {
+          "time": 1.333333,
+          "eyes": "closed",
+          "eyebrows": "regular",
+          "mouth": "frown"
+        },
+        {
+          "time": 1.733333,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "open"
+        }
+      ]
+    },
+    "Idle": {
+      "source_start_frame": 0,
+      "duration": 1.6333333333333333,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        },
+        {
+          "time": 0.5,
+          "eyes": "closed",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        },
+        {
+          "time": 0.866667,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        }
+      ]
+    },
+    "jumpFall": {
+      "source_start_frame": 0,
+      "duration": 1.9666666666666666,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "open"
+        }
+      ]
+    },
+    "jumpLand": {
+      "source_start_frame": 0,
+      "duration": 1.9666666666666666,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        },
+        {
+          "time": 0.5,
+          "eyes": "closed",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        },
+        {
+          "time": 1.2,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        }
+      ]
+    },
+    "jumpRise": {
+      "source_start_frame": 0,
+      "duration": 1.9666666666666666,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        }
+      ]
+    },
+    "jumpStart": {
+      "source_start_frame": 0,
+      "duration": 1.9666666666666666,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "closed",
+          "eyebrows": "regular",
+          "mouth": "frown"
+        },
+        {
+          "time": 0.433333,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        },
+        {
+          "time": 0.566667,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "frown"
+        },
+        {
+          "time": 0.633333,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "open"
+        },
+        {
+          "time": 0.8,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "frown"
+        },
+        {
+          "time": 1.066667,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        }
+      ]
+    },
+    "Launch": {
+      "source_start_frame": 0,
+      "duration": 1.6333333333333333,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "surprised",
+          "eyebrows": "regular",
+          "mouth": "open"
+        }
+      ]
+    },
+    "Run": {
+      "source_start_frame": 0,
+      "duration": 2.0,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        }
+      ]
+    },
+    "Stop": {
+      "source_start_frame": 0,
+      "duration": 1.9666666666666666,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        },
+        {
+          "time": 0.1,
+          "eyes": "closed",
+          "eyebrows": "regular",
+          "mouth": "frown"
+        },
+        {
+          "time": 0.266667,
+          "eyes": "surprised",
+          "eyebrows": "regular",
+          "mouth": "open"
+        },
+        {
+          "time": 0.433333,
+          "eyes": "closed",
+          "eyebrows": "regular",
+          "mouth": "open"
+        },
+        {
+          "time": 0.6,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "open"
+        },
+        {
+          "time": 0.866667,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "frown"
+        }
+      ]
+    },
+    "wallRunRight": {
+      "source_start_frame": 0,
+      "duration": 1.9666666666666666,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        }
+      ]
+    },
+    "wallRunRightJump": {
+      "source_start_frame": 0,
+      "duration": 2.2666666666666666,
+      "events": [
+        {
+          "time": 0.0,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        },
+        {
+          "time": 0.833333,
+          "eyes": "closed",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        },
+        {
+          "time": 1.2,
+          "eyes": "neutral",
+          "eyebrows": "regular",
+          "mouth": "smile"
+        }
+      ]
+    }
+  }
+}
