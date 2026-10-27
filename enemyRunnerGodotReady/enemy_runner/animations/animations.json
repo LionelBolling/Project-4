@@ -1,0 +1,164 @@
+{
+  "animations": [
+    {
+      "name": "dive",
+      "duration_seconds": 1.9666666666666666,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        59
+      ],
+      "loop": true
+    },
+    {
+      "name": "diveLand",
+      "duration_seconds": 2.2666666666666666,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        68
+      ],
+      "loop": false
+    },
+    {
+      "name": "glideFloat",
+      "duration_seconds": 1.9666666666666666,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        59
+      ],
+      "loop": true
+    },
+    {
+      "name": "glideLand",
+      "duration_seconds": 2.2666666666666666,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        68
+      ],
+      "loop": false
+    },
+    {
+      "name": "glideStart",
+      "duration_seconds": 1.9666666666666666,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        59
+      ],
+      "loop": false
+    },
+    {
+      "name": "hurt",
+      "duration_seconds": 2.2666666666666666,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        68
+      ],
+      "loop": false
+    },
+    {
+      "name": "Idle",
+      "duration_seconds": 1.6333333333333333,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        49
+      ],
+      "loop": true
+    },
+    {
+      "name": "jumpFall",
+      "duration_seconds": 1.9666666666666666,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        59
+      ],
+      "loop": true
+    },
+    {
+      "name": "jumpLand",
+      "duration_seconds": 1.9666666666666666,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        59
+      ],
+      "loop": false
+    },
+    {
+      "name": "jumpRise",
+      "duration_seconds": 1.9666666666666666,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        59
+      ],
+      "loop": false
+    },
+    {
+      "name": "jumpStart",
+      "duration_seconds": 1.9666666666666666,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        59
+      ],
+      "loop": false
+    },
+    {
+      "name": "Launch",
+      "duration_seconds": 1.6333333333333333,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        49
+      ],
+      "loop": true
+    },
+    {
+      "name": "Run",
+      "duration_seconds": 2.0,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        60
+      ],
+      "loop": true
+    },
+    {
+      "name": "Stop",
+      "duration_seconds": 1.9666666666666666,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        59
+      ],
+      "loop": false
+    },
+    {
+      "name": "wallRunRight",
+      "duration_seconds": 1.9666666666666666,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        59
+      ],
+      "loop": true
+    },
+    {
+      "name": "wallRunRightJump",
+      "duration_seconds": 2.2666666666666666,
+      "fps": 30.0,
+      "source_frames": [
+        0,
+        68
+      ],
+      "loop": false
+    }
+  ]
+}

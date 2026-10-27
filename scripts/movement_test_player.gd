@@ -5,6 +5,7 @@ class_name MovementTestPlayer
 @export var run_speed := 8.5
 @export var ground_acceleration := 34.0
 @export var air_acceleration := 13.0
+@export_range(0.0, 10.0, 0.1) var run_momentum_decay := 1.8
 @export var ground_friction := 26.0
 @export var stop_braking_friction := 52.0
 @export var reverse_braking := 42.0
@@ -14,6 +15,7 @@ class_name MovementTestPlayer
 @export var jump_buffer_seconds := 0.16
 @export var coyote_seconds := 0.13
 @export var turn_sharpness := 13.0
+@export_range(0.0, 0.5, 0.01) var turn_lean_strength := 0.22
 @export_range(0.1, 4.0, 0.05) var run_animation_speed_multiplier := 2.0
 @export_range(0.1, 4.0, 0.05) var jump_start_animation_speed_multiplier := 2.0
 @export var dive_speed := 18.0
@@ -28,7 +30,6 @@ class_name MovementTestPlayer
 @export var dive_pivot_height := 0.9
 @export_range(0.5, 5.0, 0.1) var dive_land_animation_speed := 3.6
 @export_range(0.5, 5.0, 0.1) var landing_animation_speed := 3.0
-@export var wall_run_speed := 8.0
 @export var wall_run_duration := 4.0
 @export var wall_run_gravity := 5.5
 @export var wall_run_wall_pull := 7.0
@@ -50,11 +51,18 @@ class_name MovementTestPlayer
 @export_range(0.0, 0.8, 0.01) var speaker_pulse_amount := 0.32
 @export_range(0.05, 0.4, 0.01) var speaker_pulse_rise_fraction := 0.16
 @export var mouse_sensitivity := 0.0025
+@export var camera_base_distance := 5.8
+@export var camera_speed_distance_bonus := 1.2
+@export var camera_distance_smoothing := 5.0
+@export var camera_follow_height := 1.85
 @export var fall_reset_height := -18.0
 @export_range(0.0, 0.4, 0.01) var landing_squash_strength := 0.18
 @export_range(0.0, 0.4, 0.01) var wall_impact_squash_strength := 0.14
 @export var squash_spring_strength := 120.0
 @export var squash_damping := 20.0
+@export_range(0.5, 5.0, 0.1) var hurt_animation_speed_multiplier := 2.5
+@export_range(0.2, 3.0, 0.1) var hurt_contact_cooldown := 1.1
+@export_range(0.05, 1.0, 0.05) var hurt_movement_speed_multiplier := 0.2
 
 @onready var visual: Node3D = $Runner
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
@@ -71,6 +79,7 @@ var jump_start_timer := 0.0
 var jump_pending := false
 var coyote_timer := 0.0
 var dive_timer := 0.0
+var dive_target_speed := 0.0
 var dive_lockout := 0.0
 var dive_repeat_speed_bonus := 0.0
 var dive_landing_timer := 0.0
@@ -80,6 +89,7 @@ var wall_timer := 0.0
 var wall_side := 0
 var wall_normal := Vector3.ZERO
 var wall_run_direction := Vector3.ZERO
+var wall_run_entry_speed := 0.0
 var wall_regrab_lock := 0.0
 var wall_jump_animation_active := false
 var wall_jump_animation_name := "wallRunRightJump"
@@ -113,6 +123,8 @@ var boombox_root: Node3D
 var speaker_pivots: Array[Node3D] = []
 var speaker_base_scales: Array[Vector3] = []
 var speaker_beat_time := 0.0
+var hurt_animation_timer := 0.0
+var hurt_contact_cooldown_timer := 0.0
 
 func _ready() -> void:
 	spawn_position = global_position
@@ -126,6 +138,9 @@ func _ready() -> void:
 				speaker_base_scales.append(pivot.scale)
 	_register_inputs()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	camera_pivot.position.y = camera_follow_height
+	spring_arm.spring_length = camera_base_distance
+	spring_arm.add_excluded_object(get_rid())
 	var players := visual.find_children("*", "AnimationPlayer", true, false)
 	if not players.is_empty():
 		anim = players[0] as AnimationPlayer
@@ -191,6 +206,8 @@ func _physics_process(delta: float) -> void:
 		_respawn_at_start()
 		return
 	jump_buffer = maxf(0.0, jump_buffer - delta)
+	hurt_animation_timer = maxf(0.0, hurt_animation_timer - delta)
+	hurt_contact_cooldown_timer = maxf(0.0, hurt_contact_cooldown_timer - delta)
 	dive_lockout = maxf(0.0, dive_lockout - delta)
 	wall_impact_cooldown = maxf(0.0, wall_impact_cooldown - delta)
 	if not Input.is_action_pressed("dive"):
@@ -319,7 +336,7 @@ func _physics_process(delta: float) -> void:
 			var dive_dir := Vector3(velocity.x, 0, velocity.z).normalized()
 			if dive_dir.length_squared() < 0.01:
 				dive_dir = visual.global_basis.z
-			horizontal = horizontal.move_toward(dive_dir * (dive_speed + dive_repeat_speed_bonus), 22.0 * delta)
+			horizontal = horizontal.move_toward(dive_dir * dive_target_speed, 22.0 * delta)
 		elif is_on_floor() and not dive_left_ground:
 			# A low ceiling can prevent a ground dive from leaving the floor.
 			_end_dive()
@@ -348,7 +365,7 @@ func _physics_process(delta: float) -> void:
 		elif state == "WALL_RUNNING":
 			wall_timer -= delta
 			# Hold height and run along the wall for the configured duration.
-			horizontal = wall_run_direction * wall_run_speed - wall_normal * wall_run_wall_pull
+			horizontal = wall_run_direction * wall_run_entry_speed - wall_normal * wall_run_wall_pull
 			velocity.y = move_toward(velocity.y, 0.0, wall_run_gravity * delta)
 			if not _wall_still_near():
 				wall_regrab_lock = 0.65
@@ -372,9 +389,22 @@ func _physics_process(delta: float) -> void:
 	else:
 		var acceleration := ground_acceleration if grounded else air_acceleration
 		if wish_dir.length_squared() > 0.001:
-			var target := wish_dir * run_speed
 			var reversing := horizontal.length() > 1.0 and horizontal.normalized().dot(wish_dir) < -0.2
-			horizontal = horizontal.move_toward(target, (reverse_braking if reversing else acceleration) * delta)
+			if reversing:
+				# Brake existing momentum before accelerating into the opposite direction.
+				horizontal = horizontal.move_toward(Vector3.ZERO, reverse_braking * delta)
+			else:
+				var current_speed := horizontal.length()
+				# Keep excess move momentum for a while; normal acceleration still
+				# reaches run speed quickly when starting below it.
+				var speed_adjustment := run_momentum_decay if current_speed > run_speed else acceleration
+				var steered_speed := move_toward(current_speed, run_speed, speed_adjustment * delta)
+				if current_speed < 0.01:
+					horizontal = wish_dir * steered_speed
+				else:
+					var steering_weight := clampf(acceleration * delta / maxf(current_speed, 0.01), 0.0, 1.0)
+					var steered_direction := horizontal.normalized().slerp(wish_dir, steering_weight).normalized()
+					horizontal = steered_direction * steered_speed
 		elif grounded:
 			horizontal = horizontal.move_toward(Vector3.ZERO, stop_braking_friction * delta)
 		if not grounded:
@@ -383,6 +413,10 @@ func _physics_process(delta: float) -> void:
 			if state == "JUMPING" and not Input.is_action_pressed("jump") and velocity.y > 0.0:
 				velocity.y = minf(velocity.y, jump_velocity * 0.48)
 
+	if hurt_animation_timer > 0.0 and horizontal.length() > 0.01:
+		var hurt_speed_limit := run_speed * hurt_movement_speed_multiplier
+		horizontal = horizontal.move_toward(horizontal.normalized() * minf(horizontal.length(), hurt_speed_limit), reverse_braking * delta)
+		horizontal = horizontal.limit_length(hurt_speed_limit)
 	velocity.x = horizontal.x
 	velocity.z = horizontal.z
 	if state not in ["WALL_RUNNING", "WALL_SLIDING", "DIVING", "DIVE_LANDING"]:
@@ -394,14 +428,16 @@ func _physics_process(delta: float) -> void:
 	var turn_angle := 0.0
 	if wish_dir.length_squared() > 0.01 and horizontal.length() > 3.0:
 		turn_angle = clampf(horizontal.normalized().cross(wish_dir).y, -1.0, 1.0) * speed_ratio
-	lean = lerpf(lean, -turn_angle * 0.12, delta * 5.0)
-	visual.rotation.z = lerpf(visual.rotation.z, lean, delta * 7.0)
+	lean = lerpf(lean, -turn_angle * turn_lean_strength, delta * 6.0)
+	visual.rotation.z = lerpf(visual.rotation.z, lean, delta * 8.0)
 	var target_dive_pitch := dive_body_pitch if state == "DIVING" else 0.0
 	visual.rotation.x = lerpf(visual.rotation.x, target_dive_pitch, 1.0 - exp(-12.0 * delta))
 	# Rotate around the torso rather than the feet so the forward lean stays above the floor.
 	visual.position.y = dive_pivot_height * (1.0 - cos(visual.rotation.x))
 	visual.position.z = dive_pivot_height * sin(visual.rotation.x)
 	camera_pivot.rotation.z = lerpf(camera_pivot.rotation.z, float(wall_side) * 0.09 if state in ["WALL_RUNNING", "WALL_SLIDING"] else 0.0, delta * 4.0)
+	var target_camera_distance := camera_base_distance + camera_speed_distance_bonus * speed_ratio
+	spring_arm.spring_length = lerpf(spring_arm.spring_length, target_camera_distance, 1.0 - exp(-camera_distance_smoothing * delta))
 	camera.fov = lerpf(camera.fov, 78.0 + speed_ratio * 5.0, delta * 2.0)
 	_update_glide_animation()
 	var impact_velocity := velocity
@@ -421,6 +457,7 @@ func _physics_process(delta: float) -> void:
 			_finish_dive_landing(delta)
 	_update_glide_light_trails()
 	_update_animation(input_2d)
+	_update_run_animation_speed()
 	_update_body_scale(delta)
 	if status_label != null:
 		status_label.text = "STATE  %s     SPEED  %.1f" % [state, Vector2(velocity.x, velocity.z).length()]
@@ -429,14 +466,18 @@ func _begin_dive(direction: Vector3) -> void:
 	glide_animation_active = false
 	jump_pending = false
 	jump_start_timer = 0.0
+	var horizontal_momentum := Vector3(velocity.x, 0.0, velocity.z)
+	var was_grounded := is_on_floor()
 	if direction.length_squared() < 0.01:
-		direction = visual.global_basis.z
+		direction = horizontal_momentum.normalized() if not was_grounded and horizontal_momentum.length_squared() > 0.01 else visual.global_basis.z
 	direction.y = 0.0
 	direction = direction.normalized()
-	var was_grounded := is_on_floor()
 	var target_yaw := atan2(direction.x, direction.z)
 	visual.rotation.y = target_yaw
 	var launch_speed := dive_speed + dive_repeat_speed_bonus
+	if not was_grounded:
+		launch_speed += maxf(horizontal_momentum.dot(direction), 0.0)
+	dive_target_speed = launch_speed
 	velocity.x = direction.x * launch_speed
 	velocity.z = direction.z * launch_speed
 	if was_grounded:
@@ -527,6 +568,8 @@ func _capsule_is_diving() -> bool:
 func _respawn_at_start() -> void:
 	global_position = spawn_position
 	velocity = Vector3.ZERO
+	hurt_animation_timer = 0.0
+	hurt_contact_cooldown_timer = 0.0
 	state = "IDLE"
 	jump_buffer = 0.0
 	jump_start_timer = 0.0
@@ -552,6 +595,38 @@ func _respawn_at_start() -> void:
 	body_scale_velocity = Vector3.ZERO
 	_set_capsule(false)
 	_set_animation("Idle")
+
+func play_hurt_animation() -> bool:
+	if anim == null or hurt_contact_cooldown_timer > 0.0:
+		return false
+	var hurt_clip := _resolve_animation("hurt")
+	if hurt_clip.is_empty():
+		return false
+	hurt_contact_cooldown_timer = hurt_contact_cooldown
+	var clip := anim.get_animation(hurt_clip)
+	hurt_animation_timer = clip.length / maxf(hurt_animation_speed_multiplier, 0.01)
+	_play_hurt_clip()
+	return true
+
+func _play_hurt_clip() -> void:
+	if anim == null:
+		return
+	var hurt_clip := _resolve_animation("hurt")
+	if hurt_clip.is_empty():
+		return
+	anim.speed_scale = 1.0
+	anim.play(hurt_clip, 0.10, hurt_animation_speed_multiplier)
+	anim.advance(0.0)
+
+func _resolve_animation(name: String) -> StringName:
+	if anim == null:
+		return &""
+	if anim.has_animation(name):
+		return StringName(name)
+	for clip in anim.get_animation_list():
+		if str(clip).ends_with("/" + name):
+			return clip
+	return &""
 
 func _trigger_landing_squash(vertical_speed: float) -> void:
 	var impact := clampf(absf(vertical_speed) / jump_velocity, 0.45, 1.6)
@@ -622,6 +697,7 @@ func _try_wall_run(wish_dir: Vector3) -> void:
 			wall_run_direction = Vector3.UP.cross(wall_normal).normalized()
 			if wall_run_direction.dot(Vector3(velocity.x, 0.0, velocity.z)) < 0.0:
 				wall_run_direction = -wall_run_direction
+			wall_run_entry_speed = Vector2(velocity.x, velocity.z).length()
 			wall_timer = wall_run_duration
 			state = "WALL_RUNNING"
 			glide_animation_active = false
@@ -766,6 +842,10 @@ func _draw_glide_ribbon(ribbon: ImmediateMesh, points: PackedVector3Array, mater
 	ribbon.surface_end()
 
 func _update_animation(input_2d: Vector2) -> void:
+	if hurt_animation_timer > 0.0:
+		if not _is_animation_playing("hurt"):
+			_play_hurt_clip()
+		return
 	if dive_jump_animation_active:
 		dive_jump_animation_active = false
 		return
@@ -823,7 +903,20 @@ func _set_animation(name: String) -> void:
 		playback_speed = landing_animation_speed
 	elif name in ["wallRunRightJump", "wallRunLeftJump"]:
 		playback_speed = wall_jump_animation_speed
+	anim.speed_scale = 1.0
 	anim.play(resolved, 0.14, playback_speed)
+
+func _update_run_animation_speed() -> void:
+	if anim == null:
+		return
+	if hurt_animation_timer > 0.0:
+		return
+	if _is_animation_playing("Run"):
+		var horizontal_speed := Vector2(velocity.x, velocity.z).length()
+		var speed_factor := clampf(horizontal_speed / maxf(run_speed, 0.01), 0.35, 1.65)
+		anim.speed_scale = speed_factor
+	else:
+		anim.speed_scale = 1.0
 
 func _create_mirrored_wall_jump_animation() -> void:
 	if anim == null or not anim.has_animation("wallRunRightJump"):

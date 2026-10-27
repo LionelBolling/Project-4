@@ -1,0 +1,103 @@
+{
+  "bone_names": [
+    "Scarf_01",
+    "Scarf_02",
+    "Scarf_03",
+    "Scarf_04",
+    "Scarf_05",
+    "Scarf_06"
+  ],
+  "anchor_bone": "Neck",
+  "last_bone_length": 0.2457827627658844,
+  "root_stiffness": 1.5,
+  "tip_stiffness": 0.35,
+  "drag": 0.3,
+  "gravity": 1.0,
+  "root_radius": 0.012,
+  "tip_radius": 0.032,
+  "colliders": [
+    {
+      "name": "Pelvis",
+      "bone": "Pelvis",
+      "radius": 0.145,
+      "height": 0.41000000476837156,
+      "position_offset": [
+        0,
+        0.06000000238418579,
+        0
+      ]
+    },
+    {
+      "name": "Chest",
+      "bone": "Chest",
+      "radius": 0.15,
+      "height": 0.4249999850988388,
+      "position_offset": [
+        0,
+        0.0624999925494194,
+        0
+      ]
+    },
+    {
+      "name": "Thigh_L",
+      "bone": "Thigh.L",
+      "radius": 0.12,
+      "height": 0.576340606212616,
+      "position_offset": [
+        0,
+        0.16817030310630798,
+        0
+      ]
+    },
+    {
+      "name": "Thigh_R",
+      "bone": "Thigh.R",
+      "radius": 0.12,
+      "height": 0.576340606212616,
+      "position_offset": [
+        0,
+        0.16817030310630798,
+        0
+      ]
+    },
+    {
+      "name": "Shin_L",
+      "bone": "Shin.L",
+      "radius": 0.1,
+      "height": 0.4763510346412659,
+      "position_offset": [
+        0,
+        0.13817551732063293,
+        0
+      ]
+    },
+    {
+      "name": "Shin_R",
+      "bone": "Shin.R",
+      "radius": 0.1,
+      "height": 0.4763510346412659,
+      "position_offset": [
+        0,
+        0.13817551732063293,
+        0
+      ]
+    },
+    {
+      "name": "Boombox",
+      "bone": "Boombox_Attachment",
+      "radius": 0.16,
+      "height": 0.64,
+      "position_offset": [
+        -8.393284414451936e-16,
+        0.1249999925494194,
+        -0.0549999475479126
+      ],
+      "rotation_axis": [
+        0,
+        0,
+        1
+      ],
+      "rotation_angle": 1.5707963267948966
+    }
+  ]
+}

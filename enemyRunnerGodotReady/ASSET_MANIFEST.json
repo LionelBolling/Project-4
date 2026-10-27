@@ -1,0 +1,194 @@
+{
+  "package": "enemyRunnerGodotReady",
+  "godot_minimum": "4.5",
+  "status": "exported and Blender reimport verified; Godot engine runtime not executed",
+  "editable_blend": "blender/enemyRunner.blend",
+  "editable_blend_sha256": "05c0a6eba224d96121966ea79bb044687d8dff25f3e14411d01c30ca39f07764",
+  "authoring_source": "F:\\CompHw\\project4\\enemyRunner",
+  "authoring_source_unchanged": true,
+  "runtime_joint_count": 53,
+  "scarf_bone_count": 6,
+  "animation_count": 16,
+  "animation_names": [
+    "dive",
+    "diveLand",
+    "glideFloat",
+    "glideLand",
+    "glideStart",
+    "hurt",
+    "Idle",
+    "jumpFall",
+    "jumpLand",
+    "jumpRise",
+    "jumpStart",
+    "Launch",
+    "Run",
+    "Stop",
+    "wallRunRight",
+    "wallRunRightJump"
+  ],
+  "looping_animations": [
+    "dive",
+    "glideFloat",
+    "Idle",
+    "jumpFall",
+    "Launch",
+    "Run",
+    "wallRunRight"
+  ],
+  "Launch": {
+    "name": "Launch",
+    "duration_seconds": 1.6333333333333333,
+    "fps": 30.0,
+    "source_frames": [
+      0,
+      49
+    ],
+    "loop": true
+  },
+  "face_texture_count": 9,
+  "current_painted_faces_preserved": true,
+  "godot_scene": "enemy_runner/enemy_runner.tscn",
+  "godot_resource_namespace": "res://enemy_runner/",
+  "blender_reimport_verified": true,
+  "godot_engine_runtime_executed": false,
+  "tests_included": false,
+  "blender_backups_included": false,
+  "files": [
+    {
+      "path": "blender/.gdignore",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "blender/enemyRunner.blend",
+      "bytes": 1725000,
+      "sha256": "05c0a6eba224d96121966ea79bb044687d8dff25f3e14411d01c30ca39f07764"
+    },
+    {
+      "path": "enemy_runner/animations/animations.json",
+      "bytes": 3040,
+      "sha256": "91641af1fbbb0d5de9637e8e660699129c320dc75d670c4ff883e5f6888c6729"
+    },
+    {
+      "path": "enemy_runner/animations/face_animation_tracks.json",
+      "bytes": 8167,
+      "sha256": "3be31418da020ee38a3492301186c0441c1aac7fe3c01a4bb6c095050dc9cd91"
+    },
+    {
+      "path": "enemy_runner/assets/boombox.glb",
+      "bytes": 63412,
+      "sha256": "8cc3e617e548c1f3cbe942d205aadfefc73fb4d50edf3a8cb567fab19846f84d"
+    },
+    {
+      "path": "enemy_runner/assets/enemy_runner.glb",
+      "bytes": 3331352,
+      "sha256": "3ff8a3b3ded73f20b58610702fe209ae1ce110876d4a785c9fff84be8cf96823"
+    },
+    {
+      "path": "enemy_runner/assets/scarf_config.json",
+      "bytes": 2014,
+      "sha256": "43255b0c6fd2b164be33f8008e21544408685948442a8e387147a0e5b2d59ab8"
+    },
+    {
+      "path": "enemy_runner/boombox.tscn",
+      "bytes": 331,
+      "sha256": "ac9495b9287768d824026863588b526548ab7d047f4cd94faf90f066de74930a"
+    },
+    {
+      "path": "enemy_runner/enemy_runner.tscn",
+      "bytes": 408,
+      "sha256": "85cf7f713f1fcbca772356efd37cc58299a9b5724018e117f4b47af9d2fffc7e"
+    },
+    {
+      "path": "enemy_runner/materials/runner_cel.gdshader",
+      "bytes": 1072,
+      "sha256": "b15df6b258c15947dc29978156aa1b6a55c04f35e6dda15aeda5329a79a13b88"
+    },
+    {
+      "path": "enemy_runner/scripts/belt_physics.gd",
+      "bytes": 5391,
+      "sha256": "428543701e994ce8b4f73ee22bfb4312d4a39986e3e98372c74c46f1adf14fcc"
+    },
+    {
+      "path": "enemy_runner/scripts/boombox.gd",
+      "bytes": 417,
+      "sha256": "d84353508afa4a3481c35497e4ccb3b79afbea0fd78091b34a4cf1df1cbde2e7"
+    },
+    {
+      "path": "enemy_runner/scripts/cel_materials.gd",
+      "bytes": 2130,
+      "sha256": "5c7060a4139a55194dc28c60934bda31844ba6dcfb86d813c54ee289fa21f7a5"
+    },
+    {
+      "path": "enemy_runner/scripts/enemy_character.gd",
+      "bytes": 6020,
+      "sha256": "e2abad2ebeaefe0ad525273c28e36a52e932dd4b45c6607e72ae786c5172da2d"
+    },
+    {
+      "path": "enemy_runner/scripts/face_animation_sync.gd",
+      "bytes": 1998,
+      "sha256": "ec1859d918cf6ff0258b8e3a84137419c0c45e4d5611ce57a177dda62d2e2176"
+    },
+    {
+      "path": "enemy_runner/scripts/facial_controller.gd",
+      "bytes": 8043,
+      "sha256": "e09b8c50e6dd22ab2703a5de94434725fb4483268ec8f174f30beb8ef4dd1569"
+    },
+    {
+      "path": "enemy_runner/textures/face/eyebrows/expressive.png",
+      "bytes": 9347,
+      "sha256": "a2d733e91d1114f5d2bd7279305cca45c8effe9c5f555bc75c6c15816fe4cb99"
+    },
+    {
+      "path": "enemy_runner/textures/face/eyebrows/regular.png",
+      "bytes": 9347,
+      "sha256": "a2d733e91d1114f5d2bd7279305cca45c8effe9c5f555bc75c6c15816fe4cb99"
+    },
+    {
+      "path": "enemy_runner/textures/face/eyes/closed.png",
+      "bytes": 25753,
+      "sha256": "8153c02572c91b6db455b0bfd5a6d361f05ea6905ef7c79691326684984bf38b"
+    },
+    {
+      "path": "enemy_runner/textures/face/eyes/neutral.png",
+      "bytes": 34870,
+      "sha256": "8900d834a4e62d3d3b3607885b5ef5ca07bed201d41a45e890bf9c6cdc1d470b"
+    },
+    {
+      "path": "enemy_runner/textures/face/eyes/surprised.png",
+      "bytes": 65012,
+      "sha256": "b403616c4237b242d773fcee2087a73164737dc2c6621ab632d3b2412b64f69d"
+    },
+    {
+      "path": "enemy_runner/textures/face/mouth/frown.png",
+      "bytes": 29366,
+      "sha256": "5203c9b62e88c3d0c1199cb56dc1fdd6daae700bb9533a1ae280c159aed87eac"
+    },
+    {
+      "path": "enemy_runner/textures/face/mouth/open.png",
+      "bytes": 32093,
+      "sha256": "f49735a785949828de423b7fa7451bde51c86ef6da0268f81f7b69a0a9aab3ea"
+    },
+    {
+      "path": "enemy_runner/textures/face/mouth/smile.png",
+      "bytes": 42568,
+      "sha256": "77fa02c9f96365d21bff23196fcecd2fd0fb345e88d50d4bb23ad06bad3986f9"
+    },
+    {
+      "path": "enemy_runner/textures/face/nose/regular.png",
+      "bytes": 9347,
+      "sha256": "a2d733e91d1114f5d2bd7279305cca45c8effe9c5f555bc75c6c15816fe4cb99"
+    },
+    {
+      "path": "project.godot",
+      "bytes": 378,
+      "sha256": "e869cf8c9f7f28ab40912628412292b83e051142510f68c692ead922b90e1de0"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4997,
+      "sha256": "8e41e65b1ec128b061c68b2dafe8db68d6933478a16af19bcf1be1b95efc48d6"
+    }
+  ]
+}
