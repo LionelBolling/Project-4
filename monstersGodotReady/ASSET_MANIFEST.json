@@ -1,0 +1,273 @@
+{
+  "package": "monstersGodotReady",
+  "monsters": {
+    "disco_ball": {
+      "source_blend": "F:\\CompHw\\project4\\discoBallMonster\\blender\\discoBallMonster.blend",
+      "source_blend_sha256": "015f7e3ccd46c54784c5a96ccab39bb91f502ec183c034fb44c74571f8b24f2a",
+      "scene": "monsters/disco_ball/disco_ball.tscn",
+      "model": "monsters/disco_ball/assets/disco_ball.glb",
+      "runtime_joint_count": 1,
+      "animations": [
+        {
+          "name": "hurt",
+          "source_frames": [
+            0,
+            8
+          ],
+          "fps": 24.0,
+          "duration_seconds": 0.3333333333333333,
+          "loop": true,
+          "eye_events": [
+            {
+              "time": 0.0,
+              "eyes": "hurt"
+            }
+          ],
+          "eye_state_source": "matching animation name"
+        },
+        {
+          "name": "idle",
+          "source_frames": [
+            0,
+            30
+          ],
+          "fps": 24.0,
+          "duration_seconds": 1.25,
+          "loop": true,
+          "eye_events": [
+            {
+              "time": 0.0,
+              "eyes": "normal"
+            }
+          ],
+          "eye_state_source": "matching animation name"
+        }
+      ]
+    },
+    "speaker": {
+      "source_blend": "F:\\CompHw\\project4\\speakerMonster\\blender\\speakerMonster.blend",
+      "source_blend_sha256": "0bf6feedc219f21defec9d46d52ac6a763adf2d9e43eb8e877e8cdfe9a4e05d3",
+      "scene": "monsters/speaker/speaker.tscn",
+      "model": "monsters/speaker/assets/speaker.glb",
+      "runtime_joint_count": 3,
+      "animations": [
+        {
+          "name": "hurt",
+          "source_frames": [
+            0,
+            12
+          ],
+          "fps": 24.0,
+          "duration_seconds": 0.5,
+          "loop": true,
+          "eye_events": [
+            {
+              "time": 0.0,
+              "eyes": "hurt"
+            }
+          ],
+          "eye_state_source": "matching animation name"
+        },
+        {
+          "name": "idle",
+          "source_frames": [
+            0,
+            36
+          ],
+          "fps": 24.0,
+          "duration_seconds": 1.5,
+          "loop": true,
+          "eye_events": [
+            {
+              "time": 0.0,
+              "eyes": "normal"
+            }
+          ],
+          "eye_state_source": "matching animation name"
+        }
+      ]
+    },
+    "microphone": {
+      "source_blend": "F:\\CompHw\\project4\\microphoneMonster\\blender\\microphoneMonster.blend",
+      "source_blend_sha256": "63a92d181c06df38439dfa856d4878ca0e9bbbc1b6848fa7d04d7f8d8aa1122c",
+      "scene": "monsters/microphone/microphone.tscn",
+      "model": "monsters/microphone/assets/microphone.glb",
+      "runtime_joint_count": 13,
+      "animations": [
+        {
+          "name": "hurt",
+          "source_frames": [
+            0,
+            12
+          ],
+          "fps": 24.0,
+          "duration_seconds": 0.5,
+          "loop": true,
+          "eye_events": [
+            {
+              "time": 0.0,
+              "eyes": "hurt"
+            }
+          ],
+          "eye_state_source": "matching animation name"
+        },
+        {
+          "name": "idle",
+          "source_frames": [
+            0,
+            42
+          ],
+          "fps": 24.0,
+          "duration_seconds": 1.75,
+          "loop": true,
+          "eye_events": [
+            {
+              "time": 0.0,
+              "eyes": "normal"
+            }
+          ],
+          "eye_state_source": "matching animation name"
+        }
+      ]
+    }
+  },
+  "both_animations_repeat": true,
+  "eye_controller": "normal/hurt mesh visibility with matching painted artwork",
+  "original_source_folders_unchanged": true,
+  "blender_GLb_reimport_verified": true,
+  "godot_engine_runtime_executed": false,
+  "tests_included": false,
+  "authoring_backups_included": false,
+  "files": [
+    {
+      "path": "blender/.gdignore",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "blender/discoBallMonster/discoBallMonster.blend",
+      "bytes": 526476,
+      "sha256": "015f7e3ccd46c54784c5a96ccab39bb91f502ec183c034fb44c74571f8b24f2a"
+    },
+    {
+      "path": "blender/microphoneMonster/microphoneMonster.blend",
+      "bytes": 351161,
+      "sha256": "63a92d181c06df38439dfa856d4878ca0e9bbbc1b6848fa7d04d7f8d8aa1122c"
+    },
+    {
+      "path": "blender/speakerMonster/speakerMonster.blend",
+      "bytes": 321809,
+      "sha256": "0bf6feedc219f21defec9d46d52ac6a763adf2d9e43eb8e877e8cdfe9a4e05d3"
+    },
+    {
+      "path": "monsters/disco_ball/assets/disco_ball.glb",
+      "bytes": 625452,
+      "sha256": "a90c6e74f479e75d2fbea8ce5cb474896b81cded73468da7480b56284f179438"
+    },
+    {
+      "path": "monsters/disco_ball/disco_ball.tscn",
+      "bytes": 441,
+      "sha256": "1e69b916ffcf097eb8e866e45a8e75a3b9bba70bf4c8cd3da2403c7a7a79f6b6"
+    },
+    {
+      "path": "monsters/disco_ball/monster.json",
+      "bytes": 1095,
+      "sha256": "8c6bf741f7dd6bc17fd5b85a6326e63d96fc1ef78f6e35cb71025522100a15f4"
+    },
+    {
+      "path": "monsters/disco_ball/textures/eyes/hurt.png",
+      "bytes": 61544,
+      "sha256": "25119c55c1286398f2f6eb9ced144cb6f6bc71719116d8df91ba0eb122b861de"
+    },
+    {
+      "path": "monsters/disco_ball/textures/eyes/normal.png",
+      "bytes": 152638,
+      "sha256": "a57ad232538ddf5d58d75c2515d54c8af9e09ac13a790e6486da76ae59291753"
+    },
+    {
+      "path": "monsters/disco_ball/textures/face/nose.png",
+      "bytes": 35603,
+      "sha256": "c4e83d27ba15d193da190bf85e121efae7a0fe44a2fc043b13957c50eb73b81c"
+    },
+    {
+      "path": "monsters/microphone/assets/microphone.glb",
+      "bytes": 473380,
+      "sha256": "c6e82b3cc8ba8f129f292ca4d2189f234377dc785d5bdcf515abc51c8b4827ef"
+    },
+    {
+      "path": "monsters/microphone/microphone.tscn",
+      "bytes": 442,
+      "sha256": "e1b798d520c60142ae284ee592b1329eaef5ea69463200cd514f1f00cd129049"
+    },
+    {
+      "path": "monsters/microphone/monster.json",
+      "bytes": 1043,
+      "sha256": "e3bc65f212db4795fa9015c854bf8d4fb951a840376fdde649809e5877a1cac0"
+    },
+    {
+      "path": "monsters/microphone/textures/eyes/hurt.png",
+      "bytes": 42433,
+      "sha256": "c7d06ae731c51c2fba598d923b55a9af264c3c4808165d8f82b3fe05497f448a"
+    },
+    {
+      "path": "monsters/microphone/textures/eyes/normal.png",
+      "bytes": 52952,
+      "sha256": "bf1b11f5aafff32efd95224e2b29c044663f528629dbb6feffb09756eb76073f"
+    },
+    {
+      "path": "monsters/shared/eye_controller.gd",
+      "bytes": 940,
+      "sha256": "016fad5d283aa800478031b3755d29c550488b027c4f12229a8c0dbdb0ecffa9"
+    },
+    {
+      "path": "monsters/shared/monster_character.gd",
+      "bytes": 4269,
+      "sha256": "55a4fbfed67ab63fd055b6a3c7d28f236db00b857bd7d152d9e4a7fe0f8b4ee3"
+    },
+    {
+      "path": "monsters/shared/monster_toon.gdshader",
+      "bytes": 514,
+      "sha256": "bf888aeeebefd8d7434f8b2415dc3fc72635fd5cff98db0c20c2e909a990582a"
+    },
+    {
+      "path": "monsters/shared/toon_materials.gd",
+      "bytes": 1569,
+      "sha256": "de204fb7311df92b48e2d5e8b1a07646b2e17bc7b472caad29bb3617aad0169e"
+    },
+    {
+      "path": "monsters/speaker/assets/speaker.glb",
+      "bytes": 497412,
+      "sha256": "b3a1e1eef5e7c105d160b0948009079b254010ddb4be9085cda204e67b7b8de9"
+    },
+    {
+      "path": "monsters/speaker/monster.json",
+      "bytes": 1036,
+      "sha256": "0f151838558a91fd21058255a100f82aa4197d53a52af7bc170cf62e80e08dca"
+    },
+    {
+      "path": "monsters/speaker/speaker.tscn",
+      "bytes": 430,
+      "sha256": "94c37d25caf557a420267bc4a6835010cdce113ffec6e595a4ea5cb1f2887bee"
+    },
+    {
+      "path": "monsters/speaker/textures/eyes/hurt.png",
+      "bytes": 66322,
+      "sha256": "c0b7fa19e0e83bcf99569e158eebfc2a5d23aff8729ff95d1622e801dba023fe"
+    },
+    {
+      "path": "monsters/speaker/textures/eyes/normal.png",
+      "bytes": 71137,
+      "sha256": "7d25d2b5edc1b45893b1eca635a7359d9228247e62b83570776fb0d3adf449a9"
+    },
+    {
+      "path": "project.godot",
+      "bytes": 312,
+      "sha256": "94107d9e4bdfebb1c6afa3cf79d1b092e975b15c57f02817b2e7d1d42f1b698c"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5521,
+      "sha256": "4418dc1d9834a8845b447c038dcd4d8f8f62c53aaf897197e363b476e2e2692f"
+    }
+  ]
+}
