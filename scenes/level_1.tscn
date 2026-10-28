@@ -1,0 +1,1237 @@
+[gd_scene format=3 uid="uid://cuu7mrdto7fgp"]
+
+[ext_resource type="Script" uid="uid://b6t2f46amtqo1" path="res://scripts/movement_test_player.gd" id="1_player"]
+[ext_resource type="PackedScene" path="res://runner/runner.tscn" id="2_runner"]
+[ext_resource type="Script" uid="uid://gff2uxjlsylw" path="res://scripts/level_1_backdrop.gd" id="3_backdrop"]
+[ext_resource type="Shader" uid="uid://c8rqfh7sr7wnd" path="res://shaders/pink_gradient_sky.gdshader" id="4_pink_sky"]
+[ext_resource type="Script" uid="uid://87ww0vil6nj7" path="res://scripts/platform_editor_sync.gd" id="5_platform_sync"]
+[ext_resource type="Script" uid="uid://chksrcyei0184" path="res://scripts/level_1_enemy_manager.gd" id="6_enemy_manager"]
+[ext_resource type="Script" uid="uid://dgyorvx8uvcee" path="res://scripts/monster_qte_target.gd" id="7_monster_target"]
+[ext_resource type="PackedScene" path="res://monsters/disco_ball/disco_ball.tscn" id="8_disco_ball"]
+[ext_resource type="PackedScene" path="res://monsters/speaker/speaker.tscn" id="9_speaker"]
+[ext_resource type="PackedScene" path="res://monsters/microphone/microphone.tscn" id="10_microphone"]
+[ext_resource type="Script" uid="uid://ct3n2mqlx62ub" path="res://scripts/race_opponent.gd" id="11_shadow_script"]
+[ext_resource type="PackedScene" path="res://enemy_runner/enemy_runner.tscn" id="12_shadow_visual"]
+[ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="13_pause_menu"]
+
+[sub_resource type="ShaderMaterial" id="PinkGradientSky"]
+shader = ExtResource("4_pink_sky")
+shader_parameter/top_color = Color(1, 0.97, 0.985, 1)
+shader_parameter/middle_color = Color(1, 0.84, 0.9, 1)
+shader_parameter/bottom_color = Color(0.92, 0.31, 0.5, 1)
+
+[sub_resource type="Sky" id="LevelSky"]
+sky_material = SubResource("PinkGradientSky")
+
+[sub_resource type="Environment" id="LevelEnvironment"]
+background_mode = 2
+sky = SubResource("LevelSky")
+ambient_light_source = 1
+ambient_light_color = Color(0.7, 0.62, 0.72, 1)
+ambient_light_energy = 0.7
+glow_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="TealDecoration"]
+shading_mode = 0
+albedo_color = Color(0.04, 0.82, 0.72, 1)
+
+[sub_resource type="SphereMesh" id="DecorationCircleMesh"]
+radius = 0.8
+height = 1.6
+radial_segments = 24
+rings = 12
+
+[sub_resource type="StandardMaterial3D" id="YellowDecoration"]
+shading_mode = 0
+albedo_color = Color(1, 0.82, 0.18, 1)
+
+[sub_resource type="StandardMaterial3D" id="CoralDecoration"]
+shading_mode = 0
+albedo_color = Color(1, 0.33, 0.48, 1)
+
+[sub_resource type="CylinderMesh" id="DecorationTriangleMesh"]
+top_radius = 0.72
+bottom_radius = 0.72
+height = 0.22
+radial_segments = 4
+
+[sub_resource type="StandardMaterial3D" id="PurpleDecoration"]
+shading_mode = 0
+albedo_color = Color(0.37, 0.23, 0.76, 1)
+
+[sub_resource type="TorusMesh" id="DecorationRingMesh"]
+inner_radius = 0.34
+outer_radius = 0.46
+rings = 24
+ring_segments = 8
+
+[sub_resource type="BoxMesh" id="DecorationBarMesh"]
+size = Vector3(2, 0.2, 0.42)
+
+[sub_resource type="StandardMaterial3D" id="CyanDecoration"]
+shading_mode = 0
+albedo_color = Color(0.12, 0.64, 1, 1)
+
+[sub_resource type="BoxMesh" id="DecorationSquareMesh"]
+size = Vector3(0.95, 0.95, 0.16)
+
+[sub_resource type="BoxMesh" id="DecorationSmallBarMesh"]
+size = Vector3(0.95, 0.14, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="PlatformMaterial"]
+albedo_color = Color(0.105, 0.078, 0.19, 1)
+metallic = 0.08
+roughness = 0.72
+
+[sub_resource type="BoxMesh" id="StartMesh"]
+material = SubResource("PlatformMaterial")
+size = Vector3(20, 0.35, 24)
+
+[sub_resource type="BoxShape3D" id="StartShape"]
+size = Vector3(20, 0.35, 24)
+
+[sub_resource type="StandardMaterial3D" id="BluePlatformNeon"]
+shading_mode = 0
+albedo_color = Color(0.08, 0.89, 0.96, 1)
+
+[sub_resource type="BoxMesh" id="MediumMesh"]
+material = SubResource("PlatformMaterial")
+size = Vector3(14, 0.35, 14)
+
+[sub_resource type="BoxShape3D" id="MediumShape"]
+size = Vector3(14, 0.35, 14)
+
+[sub_resource type="StandardMaterial3D" id="PinkPlatformNeon"]
+shading_mode = 0
+albedo_color = Color(0.95, 0.08, 0.53, 1)
+
+[sub_resource type="StandardMaterial3D" id="YellowPlatformNeon"]
+shading_mode = 0
+albedo_color = Color(1, 0.82, 0.18, 1)
+
+[sub_resource type="BoxMesh" id="NarrowMesh"]
+material = SubResource("PlatformMaterial")
+size = Vector3(12, 0.35, 16)
+
+[sub_resource type="BoxShape3D" id="NarrowShape"]
+size = Vector3(12, 0.35, 16)
+
+[sub_resource type="BoxMesh" id="WideMesh"]
+material = SubResource("PlatformMaterial")
+size = Vector3(18, 0.35, 18)
+
+[sub_resource type="BoxShape3D" id="WideShape"]
+size = Vector3(18, 0.35, 18)
+
+[sub_resource type="BoxMesh" id="FinishMesh"]
+material = SubResource("PlatformMaterial")
+size = Vector3(22, 0.35, 39.08899)
+
+[sub_resource type="BoxShape3D" id="FinishShape"]
+size = Vector3(22, 0.35, 28)
+
+[sub_resource type="StandardMaterial3D" id="BlueWallMaterial"]
+shading_mode = 0
+albedo_color = Color(0.08, 0.89, 0.96, 1)
+
+[sub_resource type="BoxMesh" id="TallWallMesh"]
+size = Vector3(0.55, 6, 18)
+
+[sub_resource type="BoxShape3D" id="TallWallShape"]
+size = Vector3(0.55, 6, 18)
+
+[sub_resource type="StandardMaterial3D" id="PinkWallMaterial"]
+shading_mode = 0
+albedo_color = Color(0.95, 0.08, 0.53, 1)
+
+[sub_resource type="BoxMesh" id="ShortWallMesh"]
+size = Vector3(0.55, 4.5, 14)
+
+[sub_resource type="BoxShape3D" id="ShortWallShape"]
+size = Vector3(0.55, 4.5, 14)
+
+[sub_resource type="BoxMesh" id="CopyFinishMesh"]
+material = SubResource("PlatformMaterial")
+size = Vector3(22, 0.35, 28)
+
+[sub_resource type="BoxShape3D" id="CopyFinishShape"]
+size = Vector3(22, 0.35, 28)
+
+[sub_resource type="CapsuleShape3D" id="DiscoCapsule"]
+radius = 1.1
+height = 2.6
+
+[sub_resource type="CapsuleShape3D" id="SpeakerCapsule"]
+radius = 0.9
+
+[sub_resource type="CapsuleShape3D" id="MicrophoneCapsule"]
+radius = 0.75
+height = 2.3
+
+[sub_resource type="CapsuleShape3D" id="ShadowCapsule"]
+radius = 0.34
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="FinishNeon"]
+shading_mode = 0
+albedo_color = Color(1, 0.82, 0.18, 1)
+
+[sub_resource type="BoxMesh" id="FinishPostMesh"]
+size = Vector3(0.38, 6, 0.38)
+
+[sub_resource type="BoxMesh" id="FinishHeaderMesh"]
+size = Vector3(19, 0.45, 0.42)
+
+[sub_resource type="BoxMesh" id="FinishStripeMesh"]
+size = Vector3(19, 0.06, 0.9)
+
+[sub_resource type="CapsuleShape3D" id="PlayerCapsule"]
+radius = 0.34
+height = 1.8
+
+[node name="Level 1" type="Node3D" unique_id=998769223]
+script = ExtResource("6_enemy_manager")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1243641850]
+environment = SubResource("LevelEnvironment")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1420416950]
+transform = Transform3D(0.88294756, 0.3488854, -0.3141378, 0, 0.66913056, 0.74314487, 0.46947157, -0.656158, 0.5908072, 0, 0, 0)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="BackdropShapes" type="Node3D" parent="." unique_id=1534685057]
+script = ExtResource("3_backdrop")
+
+[node name="TealCircle_A" type="Node3D" parent="BackdropShapes" unique_id=509784007]
+transform = Transform3D(0.95105654, -0.309017, 0, 0.30226424, 0.9302737, -0.2079117, 0.06424825, 0.19773579, 0.9781476, -42, 18, -15)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/TealCircle_A" unique_id=621937146]
+transform = Transform3D(1.7, 0, 0, 0, 1.7, 0, 0, 0, 0.22, 0, 0, 0)
+material_override = SubResource("TealDecoration")
+mesh = SubResource("DecorationCircleMesh")
+
+[node name="YellowCircle_A" type="Node3D" parent="BackdropShapes" unique_id=2068952805]
+transform = Transform3D(0.9254165, 0.16317591, 0.34202012, -0.17364818, 0.9848077, 0, -0.33682406, -0.05939117, 0.9396926, 38, 25, -30)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/YellowCircle_A" unique_id=652612013]
+transform = Transform3D(1.3, 0, 0, 0, 1.3, 0, 0, 0, 0.2, 0, 0, 0)
+material_override = SubResource("YellowDecoration")
+mesh = SubResource("DecorationCircleMesh")
+
+[node name="CoralTriangle_A" type="Node3D" parent="BackdropShapes" unique_id=1264278787]
+transform = Transform3D(0.8593503, 0.3161744, 0.40193388, -0.19773579, 0.9302737, -0.309017, -0.47161174, 0.18607712, 0.8619499, -48, 14, -38)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/CoralTriangle_A" unique_id=1407689244]
+transform = Transform3D(1.5, 0, 0, 0, -4.371139e-08, -1.5, 0, 1, -6.556708e-08, 0, 0, 0)
+material_override = SubResource("CoralDecoration")
+mesh = SubResource("DecorationTriangleMesh")
+
+[node name="PurpleRing_A" type="Node3D" parent="BackdropShapes" unique_id=5241632]
+transform = Transform3D(0.9135454, -0.40673664, 0, 0.32051286, 0.7198836, -0.6156615, 0.2504121, 0.56243473, 0.7880108, 47, 30, -50)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/PurpleRing_A" unique_id=744159433]
+transform = Transform3D(1.6, 0, 0, 0, -6.9938224e-08, -1.6, 0, 1.6, -6.9938224e-08, 0, 0, 0)
+material_override = SubResource("PurpleDecoration")
+mesh = SubResource("DecorationRingMesh")
+
+[node name="TealBar_A" type="Node3D" parent="BackdropShapes" unique_id=1011493114]
+transform = Transform3D(0.80296475, -0.3244188, 0.5, 0.37460658, 0.92718387, 0, -0.46359193, 0.18730329, 0.8660254, -38, 34, -58)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/TealBar_A" unique_id=1040440828]
+material_override = SubResource("TealDecoration")
+mesh = SubResource("DecorationBarMesh")
+
+[node name="YellowTriangle_A" type="Node3D" parent="BackdropShapes" unique_id=1023606885]
+transform = Transform3D(0.8480481, 0.52991927, 0, -0.5141784, 0.82285744, -0.2419219, -0.12819907, 0.20516141, 0.9702957, 38, 11, -72)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/YellowTriangle_A" unique_id=1179896443]
+transform = Transform3D(1.1, 0, 0, 0, -4.371139e-08, -1.1, 0, 1, -4.8082526e-08, 0, 0, 0)
+material_override = SubResource("YellowDecoration")
+mesh = SubResource("DecorationTriangleMesh")
+
+[node name="CoralCircle_A" type="Node3D" parent="BackdropShapes" unique_id=1033589953]
+transform = Transform3D(0.9781476, -0.05381151, 0.20082727, 0, 0.9659258, 0.25881904, -0.2079117, -0.25316322, 0.944818, -50, 24, -82)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/CoralCircle_A" unique_id=1749375946]
+transform = Transform3D(1.35, 0, 0, 0, 1.35, 0, 0, 0, 0.18, 0, 0, 0)
+material_override = SubResource("CoralDecoration")
+mesh = SubResource("DecorationCircleMesh")
+
+[node name="CyanRing_A" type="Node3D" parent="BackdropShapes" unique_id=920941036]
+transform = Transform3D(0.9396926, 0.34202012, 0, -0.22885612, 0.628777, -0.74314487, -0.2541705, 0.6983277, 0.66913056, 45, 36, -96)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/CyanRing_A" unique_id=1302042627]
+transform = Transform3D(1.7, 0, 0, 0, -7.430936e-08, -1.7, 0, 1.7, -7.430936e-08, 0, 0, 0)
+material_override = SubResource("CyanDecoration")
+mesh = SubResource("DecorationRingMesh")
+
+[node name="PinkBar_A" type="Node3D" parent="BackdropShapes" unique_id=1689174082]
+transform = Transform3D(0.7941787, 0.48131907, 0.37096092, -0.4649027, 0.8743548, -0.1391731, -0.39133814, -0.061932415, 0.91816056, -36, 15, -108)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/PinkBar_A" unique_id=1515531319]
+material_override = SubResource("CoralDecoration")
+mesh = SubResource("DecorationBarMesh")
+
+[node name="PurpleTriangle_A" type="Node3D" parent="BackdropShapes" unique_id=2039072513]
+transform = Transform3D(0.74220866, -0.3665485, 0.5610424, 0.30226424, 0.9302737, 0.2079117, -0.5981327, 0.01526919, 0.80125165, 50, 29, -122)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/PurpleTriangle_A" unique_id=973491978]
+transform = Transform3D(1.4, 0, 0, 0, -4.371139e-08, -1.4, 0, 1, -6.119594e-08, 0, 0, 0)
+material_override = SubResource("PurpleDecoration")
+mesh = SubResource("DecorationTriangleMesh")
+
+[node name="YellowCircle_B" type="Node3D" parent="BackdropShapes" unique_id=51553171]
+transform = Transform3D(0.9098245, 0.2821477, 0.30432233, -0.23824656, 0.9555547, -0.17364818, -0.33979112, 0.08548562, 0.93660784, -44, 38, -136)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/YellowCircle_B" unique_id=2056821071]
+transform = Transform3D(1.65, 0, 0, 0, 1.65, 0, 0, 0, 0.2, 0, 0, 0)
+material_override = SubResource("YellowDecoration")
+mesh = SubResource("DecorationCircleMesh")
+
+[node name="CoralTriangle_B" type="Node3D" parent="BackdropShapes" unique_id=1797881745]
+transform = Transform3D(0.9287278, -0.33397964, -0.16100378, 0.2555665, 0.89126635, -0.37460658, 0.26860824, 0.30676037, 0.91309786, 35, 18, -145)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/CoralTriangle_B" unique_id=676652892]
+transform = Transform3D(1.4, 0, 0, 0, -4.371139e-08, -1.4, 0, 1, -6.119594e-08, 0, 0, 0)
+material_override = SubResource("CoralDecoration")
+mesh = SubResource("DecorationTriangleMesh")
+
+[node name="TurquoiseSquare_A" type="Node3D" parent="BackdropShapes" unique_id=1547636683]
+transform = Transform3D(0.8817031, -0.33268374, 0.33454618, 0.41338307, 0.8865028, -0.2079117, -0.22740728, 0.3216121, 0.9191581, -55, 22, -45)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/TurquoiseSquare_A" unique_id=582861886]
+material_override = SubResource("TealDecoration")
+mesh = SubResource("DecorationSquareMesh")
+
+[node name="BlueSquare_A" type="Node3D" parent="BackdropShapes" unique_id=1444086787]
+transform = Transform3D(0.9196609, 0.28379348, 0.2714498, -0.33682406, 0.9254165, 0.17364818, -0.20192394, -0.2511283, 0.94665796, 55, 12, -112)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/BlueSquare_A" unique_id=1273694024]
+material_override = SubResource("CyanDecoration")
+mesh = SubResource("DecorationSquareMesh")
+
+[node name="Zigzag_Teal" type="Node3D" parent="BackdropShapes" unique_id=34797014]
+transform = Transform3D(0.9781476, 0.2079117, 0, -0.2079117, 0.9781476, 0, 0, 0, 1, 45, 40, -28)
+
+[node name="Segment_A" type="MeshInstance3D" parent="BackdropShapes/Zigzag_Teal" unique_id=2020106776]
+transform = Transform3D(0.809017, -0.58778524, 0, 0.58778524, 0.809017, 0, 0, 0, 1, -0.85, 0, 0)
+material_override = SubResource("TealDecoration")
+mesh = SubResource("DecorationSmallBarMesh")
+
+[node name="Segment_B" type="MeshInstance3D" parent="BackdropShapes/Zigzag_Teal" unique_id=16877803]
+transform = Transform3D(0.809017, 0.58778524, 0, -0.58778524, 0.809017, 0, 0, 0, 1, -0.28, 0.38, 0)
+material_override = SubResource("TealDecoration")
+mesh = SubResource("DecorationSmallBarMesh")
+
+[node name="Segment_C" type="MeshInstance3D" parent="BackdropShapes/Zigzag_Teal" unique_id=465425054]
+transform = Transform3D(0.809017, -0.58778524, 0, 0.58778524, 0.809017, 0, 0, 0, 1, 0.28, 0, 0)
+material_override = SubResource("TealDecoration")
+mesh = SubResource("DecorationSmallBarMesh")
+
+[node name="Segment_D" type="MeshInstance3D" parent="BackdropShapes/Zigzag_Teal" unique_id=888903838]
+transform = Transform3D(0.809017, 0.58778524, 0, -0.58778524, 0.809017, 0, 0, 0, 1, 0.85, 0.38, 0)
+material_override = SubResource("TealDecoration")
+mesh = SubResource("DecorationSmallBarMesh")
+
+[node name="Zigzag_Coral" type="Node3D" parent="BackdropShapes" unique_id=1388567149]
+transform = Transform3D(0.99026805, -0.1391731, 0, 0.1391731, 0.99026805, 0, 0, 0, 1, -42, 32, -100)
+
+[node name="Segment_A" type="MeshInstance3D" parent="BackdropShapes/Zigzag_Coral" unique_id=360674014]
+transform = Transform3D(0.809017, -0.58778524, 0, 0.58778524, 0.809017, 0, 0, 0, 1, -0.85, 0, 0)
+material_override = SubResource("CoralDecoration")
+mesh = SubResource("DecorationSmallBarMesh")
+
+[node name="Segment_B" type="MeshInstance3D" parent="BackdropShapes/Zigzag_Coral" unique_id=2028169475]
+transform = Transform3D(0.809017, 0.58778524, 0, -0.58778524, 0.809017, 0, 0, 0, 1, -0.28, 0.38, 0)
+material_override = SubResource("CoralDecoration")
+mesh = SubResource("DecorationSmallBarMesh")
+
+[node name="Segment_C" type="MeshInstance3D" parent="BackdropShapes/Zigzag_Coral" unique_id=728253610]
+transform = Transform3D(0.809017, -0.58778524, 0, 0.58778524, 0.809017, 0, 0, 0, 1, 0.28, 0, 0)
+material_override = SubResource("CoralDecoration")
+mesh = SubResource("DecorationSmallBarMesh")
+
+[node name="Segment_D" type="MeshInstance3D" parent="BackdropShapes/Zigzag_Coral" unique_id=2001369808]
+transform = Transform3D(0.809017, 0.58778524, 0, -0.58778524, 0.809017, 0, 0, 0, 1, 0.85, 0.38, 0)
+material_override = SubResource("CoralDecoration")
+mesh = SubResource("DecorationSmallBarMesh")
+
+[node name="CyanCircle_B" type="Node3D" parent="BackdropShapes" unique_id=1584353261]
+transform = Transform3D(0.8541643, -0.5028755, 0.13236149, 0.446494, 0.83973306, 0.309017, -0.2665454, -0.20485267, 0.9418009, 32, 31, -24)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/CyanCircle_B" unique_id=1692733426]
+transform = Transform3D(1.45, 0, 0, 0, 1.45, 0, 0, 0, 0.18, 0, 0, 0)
+material_override = SubResource("CyanDecoration")
+mesh = SubResource("DecorationCircleMesh")
+
+[node name="YellowRing_B" type="Node3D" parent="BackdropShapes" unique_id=1414459920]
+transform = Transform3D(0.95105654, 0.309017, 0, -0.17724487, 0.5455036, -0.81915206, -0.25313193, 0.77905995, 0.57357645, -34, 23, -58)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/YellowRing_B" unique_id=820196173]
+transform = Transform3D(1.55, 0, 0, 0, -6.775265e-08, -1.55, 0, 1.55, -6.775265e-08, 0, 0, 0)
+material_override = SubResource("YellowDecoration")
+mesh = SubResource("DecorationRingMesh")
+
+[node name="CoralSquare_B" type="Node3D" parent="BackdropShapes" unique_id=1303296046]
+transform = Transform3D(0.88737494, -0.23298553, 0.3978485, 0.33454618, 0.9191581, -0.2079117, -0.31724522, 0.3175943, 0.8935823, 42, 40, -44)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/CoralSquare_B" unique_id=543320173]
+transform = Transform3D(1.6, 0, 0, 0, 1, 0, 0, 0, 1.6, 0, 0, 0)
+material_override = SubResource("CoralDecoration")
+mesh = SubResource("DecorationSquareMesh")
+
+[node name="PurpleCircle_B" type="Node3D" parent="BackdropShapes" unique_id=1722450505]
+transform = Transform3D(0.7874195, 0.2257889, 0.57357645, -0.27563736, 0.9612617, 0, -0.5513571, -0.1580991, 0.81915206, -30, 17, -72)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/PurpleCircle_B" unique_id=469447831]
+transform = Transform3D(1.7, 0, 0, 0, 1.7, 0, 0, 0, 0.2, 0, 0, 0)
+material_override = SubResource("PurpleDecoration")
+mesh = SubResource("DecorationCircleMesh")
+
+[node name="YellowBar_B" type="Node3D" parent="BackdropShapes" unique_id=1861224663]
+transform = Transform3D(0.78375155, -0.5404551, -0.30600965, 0.5247621, 0.83979493, -0.1391731, 0.33220217, -0.051505156, 0.9418009, 40, 24, -88)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/YellowBar_B" unique_id=53130829]
+transform = Transform3D(1.4, 0, 0, 0, 1, 0, 0, 0, 1.4, 0, 0, 0)
+material_override = SubResource("YellowDecoration")
+mesh = SubResource("DecorationBarMesh")
+
+[node name="TealTriangle_B" type="Node3D" parent="BackdropShapes" unique_id=1480957969]
+transform = Transform3D(0.6762406, 0.49510038, 0.5455036, -0.38682956, 0.86883336, -0.309017, -0.62694615, -0.002047047, 0.77905995, -37, 9, -104)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/TealTriangle_B" unique_id=206534912]
+transform = Transform3D(1.8, 0, 0, 0, -4.371139e-08, -1.8, 0, 1, -7.86805e-08, 0, 0, 0)
+material_override = SubResource("TealDecoration")
+mesh = SubResource("DecorationTriangleMesh")
+
+[node name="CyanRing_B" type="Node3D" parent="BackdropShapes" unique_id=1728059144]
+transform = Transform3D(0.9166607, -0.3685923, 0.1545085, 0.3715724, 0.6435823, -0.6691306, 0.14719746, 0.67077684, 0.72690535, 30, 18, -120)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/CyanRing_B" unique_id=133602393]
+transform = Transform3D(1.9, 0, 0, 0, -8.305164e-08, -1.9, 0, 1.9, -8.305164e-08, 0, 0, 0)
+material_override = SubResource("CyanDecoration")
+mesh = SubResource("DecorationRingMesh")
+
+[node name="CoralCircle_B" type="Node3D" parent="BackdropShapes" unique_id=103060869]
+transform = Transform3D(0.8801986, -0.44428328, -0.16692135, 0.39098036, 0.87815624, -0.27563736, 0.26904407, 0.17735265, 0.94665796, -32, 36, -137)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/CoralCircle_B" unique_id=259454221]
+transform = Transform3D(1.8, 0, 0, 0, 1.8, 0, 0, 0, 0.18, 0, 0, 0)
+material_override = SubResource("CoralDecoration")
+mesh = SubResource("DecorationCircleMesh")
+
+[node name="PurpleSquare_B" type="Node3D" parent="BackdropShapes" unique_id=1244964029]
+transform = Transform3D(0.7973239, 0.34513304, 0.49513403, -0.4649027, 0.8743548, 0.1391731, -0.38488957, -0.3411552, 0.8575973, 48, 13, -151)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/PurpleSquare_B" unique_id=456246410]
+transform = Transform3D(1.5, 0, 0, 0, 1, 0, 0, 0, 1.5, 0, 0, 0)
+material_override = SubResource("PurpleDecoration")
+mesh = SubResource("DecorationSquareMesh")
+
+[node name="YellowCircle_C" type="Node3D" parent="BackdropShapes" unique_id=1062068933]
+transform = Transform3D(0.85006857, 0.24748516, 0.4649027, -0.20588832, 0.96862835, -0.1391731, -0.48476124, 0.02258864, 0.8743548, 36, 13, -6)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/YellowCircle_C" unique_id=1119639090]
+transform = Transform3D(1.8, 0, 0, 0, 1.8, 0, 0, 0, 0.18, 0, 0, 0)
+material_override = SubResource("YellowDecoration")
+mesh = SubResource("DecorationCircleMesh")
+
+[node name="CoralTriangle_C" type="Node3D" parent="BackdropShapes" unique_id=1696974289]
+transform = Transform3D(0.9575242, -0.14050114, 0.25180724, 0.23644295, 0.8824171, -0.40673664, -0.16505209, 0.44899824, 0.87815624, -42, 28, -48)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/CoralTriangle_C" unique_id=643750265]
+transform = Transform3D(1.65, 0, 0, 0, -4.371139e-08, -1.65, 0, 1, -7.212379e-08, 0, 0, 0)
+material_override = SubResource("CoralDecoration")
+mesh = SubResource("DecorationTriangleMesh")
+
+[node name="TealBar_B" type="Node3D" parent="BackdropShapes" unique_id=569445520]
+transform = Transform3D(0.76336724, -0.50677824, 0.4005574, 0.6063082, 0.7760391, -0.17364818, -0.22284709, 0.3754186, 0.8996666, 52, 34, -68)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/TealBar_B" unique_id=390922540]
+transform = Transform3D(1.6, 0, 0, 0, 1, 0, 0, 0, 1.6, 0, 0, 0)
+material_override = SubResource("TealDecoration")
+mesh = SubResource("DecorationBarMesh")
+
+[node name="PinkRing_B" type="Node3D" parent="BackdropShapes" unique_id=360121439]
+transform = Transform3D(0.87537843, -0.45482987, -0.16383666, 0.26951554, 0.74048793, -0.6156615, 0.4013403, 0.49478027, 0.7707909, -48, 16, -84)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/PinkRing_B" unique_id=658209835]
+transform = Transform3D(1.7, 0, 0, 0, -7.430936e-08, -1.7, 0, 1.7, -7.430936e-08, 0, 0, 0)
+material_override = SubResource("CoralDecoration")
+mesh = SubResource("DecorationRingMesh")
+
+[node name="YellowTriangle_C" type="Node3D" parent="BackdropShapes" unique_id=1995916316]
+transform = Transform3D(0.8845636, 0.13487157, 0.446494, -0.29389265, 0.90450853, 0.309017, -0.36218002, -0.4045665, 0.83973306, 34, 37, -101)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/YellowTriangle_C" unique_id=341539729]
+transform = Transform3D(1.3, 0, 0, 0, -4.371139e-08, -1.3, 0, 1, -5.6824803e-08, 0, 0, 0)
+material_override = SubResource("YellowDecoration")
+mesh = SubResource("DecorationTriangleMesh")
+
+[node name="CyanSquare_B" type="Node3D" parent="BackdropShapes" unique_id=1580105477]
+transform = Transform3D(0.7915219, -0.45480898, -0.4082179, 0.37741727, 0.8891394, -0.25881904, 0.48067588, 0.050792456, 0.87542605, -40, 13, -119)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/CyanSquare_B" unique_id=476809116]
+transform = Transform3D(1.6, 0, 0, 0, 1, 0, 0, 0, 1.6, 0, 0, 0)
+material_override = SubResource("CyanDecoration")
+mesh = SubResource("DecorationSquareMesh")
+
+[node name="CoralBar_B" type="Node3D" parent="BackdropShapes" unique_id=691173005]
+transform = Transform3D(0.7949749, 0.556573, 0.2413326, -0.55783075, 0.82701814, -0.06975647, -0.238411, -0.079168096, 0.96793216, 43, 22, -132)
+
+[node name="Mesh" type="MeshInstance3D" parent="BackdropShapes/CoralBar_B" unique_id=1341583794]
+transform = Transform3D(1.35, 0, 0, 0, 1, 0, 0, 0, 1.35, 0, 0, 0)
+material_override = SubResource("CoralDecoration")
+mesh = SubResource("DecorationBarMesh")
+
+[node name="Platforms" type="Node3D" parent="." unique_id=1188468089]
+
+[node name="Platform_Start" type="StaticBody3D" parent="Platforms" unique_id=615845341]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.175, 0)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platforms/Platform_Start" unique_id=629984190]
+mesh = SubResource("StartMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platforms/Platform_Start" unique_id=2044975345]
+shape = SubResource("StartShape")
+
+[node name="Platform_01" type="StaticBody3D" parent="Platforms" unique_id=1250940342]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, -0.175, -28)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platforms/Platform_01" unique_id=2015894167]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0659008, 0, 6.857563)
+material_override = SubResource("BluePlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platforms/Platform_01" unique_id=1432475892]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0659008, 0, 6.857563)
+shape = SubResource("MediumShape")
+
+[node name="Platform_01" type="StaticBody3D" parent="Platforms/Platform_01" unique_id=265097384]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.290894, -0.175, -140.07394)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platforms/Platform_01/Platform_01" unique_id=1094802266]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0659008, 0, 7.494049)
+material_override = SubResource("BluePlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platforms/Platform_01/Platform_01" unique_id=1697885418]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0659008, 0, 7.494049)
+shape = SubResource("MediumShape")
+
+[node name="Platform_02" type="StaticBody3D" parent="Platforms" unique_id=1908904512]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.825, -49)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platforms/Platform_02" unique_id=1965055390]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.1597471, -0.6516917, 10.620167)
+material_override = SubResource("PinkPlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platforms/Platform_02" unique_id=314901080]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.1597471, -0.6516917, 10.620167)
+shape = SubResource("MediumShape")
+
+[node name="Platform_02" type="StaticBody3D" parent="Platforms/Platform_02" unique_id=848866017]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5176735, -1.7697952, -137.94139)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platforms/Platform_02/Platform_02" unique_id=1863650778]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.1597471, -0.6516917, 10.620167)
+material_override = SubResource("PinkPlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platforms/Platform_02/Platform_02" unique_id=2094881402]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.1597471, -0.6516917, 10.620167)
+shape = SubResource("MediumShape")
+
+[node name="Platform_02" type="StaticBody3D" parent="Platforms/Platform_02/Platform_02" unique_id=1773338238]
+transform = Transform3D(0.5653193, 0, 0, 0, 1, 0, 0, 0, 1.3408467, 9.302029, -1.7697952, -70.89656)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platforms/Platform_02/Platform_02/Platform_02" unique_id=395304778]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.1597471, -0.6516917, 10.620167)
+material_override = SubResource("PinkPlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platforms/Platform_02/Platform_02/Platform_02" unique_id=1461177595]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.1597471, -0.6516917, 10.620167)
+shape = SubResource("MediumShape")
+
+[node name="Platform_03" type="StaticBody3D" parent="Platforms" unique_id=511908602]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.175, -71.81659)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platforms/Platform_03" unique_id=813696185]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3608472, 15.404045)
+material_override = SubResource("YellowPlatformNeon")
+mesh = SubResource("NarrowMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platforms/Platform_03" unique_id=1271665767]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3608472, 15.404045)
+shape = SubResource("NarrowShape")
+
+[node name="Platform_04" type="StaticBody3D" parent="Platforms" unique_id=719955192]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 3.825, -92)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platforms/Platform_04" unique_id=1760309722]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.580349, 0.06626868, 17.926437)
+material_override = SubResource("BluePlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platforms/Platform_04" unique_id=1021269015]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.580349, 0.06626868, 17.926437)
+shape = SubResource("MediumShape")
+
+[node name="Platform_05" type="StaticBody3D" parent="Platforms" unique_id=370358126]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.825, -114)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platforms/Platform_05" unique_id=667036660]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.622246)
+material_override = SubResource("PinkPlatformNeon")
+mesh = SubResource("WideMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platforms/Platform_05" unique_id=1723631781]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.622246)
+shape = SubResource("WideShape")
+
+[node name="Platform_Finish" type="StaticBody3D" parent="Platforms" unique_id=1246914896]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -14.486705, -423.71356)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platforms/Platform_Finish" unique_id=1151658312]
+mesh = SubResource("FinishMesh")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platforms/Platform_Finish/Mesh" unique_id=1748064654]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.06340408, 0, 0.04852295)
+mesh = SubResource("FinishMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platforms/Platform_Finish" unique_id=1771536618]
+shape = SubResource("FinishShape")
+
+[node name="Walls" type="Node3D" parent="." unique_id=619466165]
+
+[node name="Wall_Left_01" type="StaticBody3D" parent="Walls" unique_id=1038519637]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.8, 3, -31)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/Wall_Left_01" unique_id=249083506]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9539366, 0, -15.743481)
+material_override = SubResource("BlueWallMaterial")
+mesh = SubResource("TallWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/Wall_Left_01" unique_id=640294009]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9539366, 0, -15.743481)
+shape = SubResource("TallWallShape")
+
+[node name="Wall_Right_01" type="StaticBody3D" parent="Walls" unique_id=1876120444]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.8, 3, -31)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/Wall_Right_01" unique_id=1725332471]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.699442, 0, 0)
+material_override = SubResource("PinkWallMaterial")
+mesh = SubResource("TallWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/Wall_Right_01" unique_id=1834691425]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.699442, 0, 0)
+shape = SubResource("TallWallShape")
+
+[node name="Wall_Left_02" type="StaticBody3D" parent="Walls" unique_id=255267842]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 3, -79)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/Wall_Left_02" unique_id=1993309926]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.1470413, 2.7274933, 2.9163666)
+material_override = SubResource("BlueWallMaterial")
+mesh = SubResource("TallWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/Wall_Left_02" unique_id=276166817]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.1470413, 2.7274933, 2.9163666)
+shape = SubResource("TallWallShape")
+
+[node name="Wall_Right_02" type="StaticBody3D" parent="Walls" unique_id=2050007213]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 3, -79)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/Wall_Right_02" unique_id=450127561]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1.1696662, 2.4860725, 5.373308, -10.541016)
+material_override = SubResource("PinkWallMaterial")
+mesh = SubResource("TallWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/Wall_Right_02" unique_id=92456868]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1.1696662, 2.4860725, 5.373308, -10.541016)
+shape = SubResource("TallWallShape")
+
+[node name="Wall_Left_04" type="StaticBody3D" parent="Walls" unique_id=1374999986]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.551092, 4.5, -197.98485)
+script = ExtResource("5_platform_sync")
+visual_mesh_path = NodePath("../Wall_Left_03/Mesh")
+collider_path = NodePath("../Wall_Left_03/CollisionShape3D")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/Wall_Left_04" unique_id=1405794769]
+transform = Transform3D(1, 0, 0, 0, 1.5789881, 0, 0, 0, 3.594695, 2.1146164, -0.41511345, -14.310837)
+material_override = SubResource("BlueWallMaterial")
+mesh = SubResource("ShortWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/Wall_Left_04" unique_id=467067140]
+transform = Transform3D(1, 0, 0, 0, 1.5789881, 0, 0, 0, 3.594695, 2.1146164, -0.41511345, -14.310837)
+shape = SubResource("ShortWallShape")
+
+[node name="Wall_Left_03" type="StaticBody3D" parent="Walls" unique_id=5645293]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.8, 2.25, -109)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/Wall_Left_03" unique_id=1051321383]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.91605, 3.825714, 0)
+material_override = SubResource("BlueWallMaterial")
+mesh = SubResource("ShortWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/Wall_Left_03" unique_id=1863676526]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.91605, 3.825714, 0)
+shape = SubResource("ShortWallShape")
+
+[node name="Wall_Left_03" type="StaticBody3D" parent="Walls/Wall_Left_03" unique_id=793077657]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.90913, -1.0111847, -45.687317)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/Wall_Left_03/Wall_Left_03" unique_id=755984268]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.91605, 3.825714, 0)
+material_override = SubResource("BlueWallMaterial")
+mesh = SubResource("ShortWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/Wall_Left_03/Wall_Left_03" unique_id=743664167]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.91605, 3.825714, 0)
+shape = SubResource("ShortWallShape")
+
+[node name="Wall_Right_03" type="StaticBody3D" parent="Walls" unique_id=167140466]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.8, 2.25, -109)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/Wall_Right_03" unique_id=472753623]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.332264, 0, 0)
+material_override = SubResource("PinkWallMaterial")
+mesh = SubResource("ShortWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/Wall_Right_03" unique_id=1562032633]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.332264, 0, 0)
+shape = SubResource("ShortWallShape")
+
+[node name="Pieces_To_Copy" type="Node3D" parent="." unique_id=1861771698]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 36)
+
+[node name="Platform_Pieces" type="Node3D" parent="Pieces_To_Copy" unique_id=1622706161]
+
+[node name="Copy_Platform_Start" type="StaticBody3D" parent="Pieces_To_Copy/Platform_Pieces" unique_id=1125326840]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.175, 0)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Start" unique_id=81658929]
+mesh = SubResource("StartMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Start" unique_id=184510815]
+shape = SubResource("StartShape")
+
+[node name="Copy_Platform_Blue_Medium" type="StaticBody3D" parent="Pieces_To_Copy/Platform_Pieces" unique_id=697091435]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.175, 0)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Blue_Medium" unique_id=1537196550]
+material_override = SubResource("BluePlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Blue_Medium" unique_id=577166445]
+shape = SubResource("MediumShape")
+
+[node name="Copy_Platform_Blue_Medium" type="StaticBody3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Blue_Medium" unique_id=956000319]
+transform = Transform3D(0.39325935, 0, 0, 0, 1, 0, 0, 0, 0.46322733, -53.49598, -0.175, -159.44539)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Blue_Medium/Copy_Platform_Blue_Medium" unique_id=1350111322]
+material_override = SubResource("BluePlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Blue_Medium/Copy_Platform_Blue_Medium" unique_id=681769441]
+shape = SubResource("MediumShape")
+
+[node name="Copy_Platform_Pink_Medium" type="StaticBody3D" parent="Pieces_To_Copy/Platform_Pieces" unique_id=710834641]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, -0.175, 0)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Pink_Medium" unique_id=1039438119]
+material_override = SubResource("PinkPlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Pink_Medium" unique_id=1982853856]
+shape = SubResource("MediumShape")
+
+[node name="Copy_Platform_Yellow_Narrow" type="StaticBody3D" parent="Pieces_To_Copy/Platform_Pieces" unique_id=542315684]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, -0.175, 7.0198975)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Yellow_Narrow" unique_id=1668677195]
+material_override = SubResource("YellowPlatformNeon")
+mesh = SubResource("NarrowMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Yellow_Narrow" unique_id=1722052602]
+shape = SubResource("NarrowShape")
+
+[node name="Copy_Platform_Yellow_Narrow" type="StaticBody3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Yellow_Narrow" unique_id=1502916547]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -99.544395, 1.3654168, -181.14285)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Yellow_Narrow/Copy_Platform_Yellow_Narrow" unique_id=677057798]
+material_override = SubResource("YellowPlatformNeon")
+mesh = SubResource("NarrowMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Yellow_Narrow/Copy_Platform_Yellow_Narrow" unique_id=40776557]
+shape = SubResource("NarrowShape")
+
+[node name="Copy_Platform_Blue_Medium_02" type="StaticBody3D" parent="Pieces_To_Copy/Platform_Pieces" unique_id=536067857]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.175, 28)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Blue_Medium_02" unique_id=104906391]
+material_override = SubResource("BluePlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Blue_Medium_02" unique_id=1733722323]
+shape = SubResource("MediumShape")
+
+[node name="Copy_Platform_Pink_Wide" type="StaticBody3D" parent="Pieces_To_Copy/Platform_Pieces" unique_id=359328521]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.175, 28)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Pink_Wide" unique_id=1093295369]
+material_override = SubResource("PinkPlatformNeon")
+mesh = SubResource("WideMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Pink_Wide" unique_id=1322235133]
+shape = SubResource("WideShape")
+
+[node name="Copy_Platform_Finish" type="StaticBody3D" parent="Pieces_To_Copy/Platform_Pieces" unique_id=855217287]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, -0.175, 28)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Finish" unique_id=417743951]
+mesh = SubResource("CopyFinishMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Platform_Pieces/Copy_Platform_Finish" unique_id=1918219261]
+shape = SubResource("CopyFinishShape")
+
+[node name="Wall_Pieces" type="Node3D" parent="Pieces_To_Copy" unique_id=168476729]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 60)
+
+[node name="Copy_Wall_Blue_Tall_01" type="StaticBody3D" parent="Pieces_To_Copy/Wall_Pieces" unique_id=868560514]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pieces_To_Copy/Wall_Pieces/Copy_Wall_Blue_Tall_01" unique_id=1836320970]
+material_override = SubResource("BlueWallMaterial")
+mesh = SubResource("TallWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Wall_Pieces/Copy_Wall_Blue_Tall_01" unique_id=2046902022]
+shape = SubResource("TallWallShape")
+
+[node name="Copy_Wall_Pink_Tall_01" type="StaticBody3D" parent="Pieces_To_Copy/Wall_Pieces" unique_id=684611185]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 3, 0)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pieces_To_Copy/Wall_Pieces/Copy_Wall_Pink_Tall_01" unique_id=697515920]
+material_override = SubResource("PinkWallMaterial")
+mesh = SubResource("TallWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Wall_Pieces/Copy_Wall_Pink_Tall_01" unique_id=1504175105]
+shape = SubResource("TallWallShape")
+
+[node name="Copy_Wall_Blue_Tall_02" type="StaticBody3D" parent="Pieces_To_Copy/Wall_Pieces" unique_id=1127963773]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 3, 0)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pieces_To_Copy/Wall_Pieces/Copy_Wall_Blue_Tall_02" unique_id=630562447]
+material_override = SubResource("BlueWallMaterial")
+mesh = SubResource("TallWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Wall_Pieces/Copy_Wall_Blue_Tall_02" unique_id=439802706]
+shape = SubResource("TallWallShape")
+
+[node name="Copy_Wall_Pink_Tall_02" type="StaticBody3D" parent="Pieces_To_Copy/Wall_Pieces" unique_id=1703281882]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 3, 0)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pieces_To_Copy/Wall_Pieces/Copy_Wall_Pink_Tall_02" unique_id=1832703998]
+material_override = SubResource("PinkWallMaterial")
+mesh = SubResource("TallWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Wall_Pieces/Copy_Wall_Pink_Tall_02" unique_id=593550651]
+shape = SubResource("TallWallShape")
+
+[node name="Copy_Wall_Blue_Short" type="StaticBody3D" parent="Pieces_To_Copy/Wall_Pieces" unique_id=1345074810]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 2.25, 0)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pieces_To_Copy/Wall_Pieces/Copy_Wall_Blue_Short" unique_id=872272628]
+material_override = SubResource("BlueWallMaterial")
+mesh = SubResource("ShortWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Wall_Pieces/Copy_Wall_Blue_Short" unique_id=965809672]
+shape = SubResource("ShortWallShape")
+
+[node name="Copy_Wall_Pink_Short" type="StaticBody3D" parent="Pieces_To_Copy/Wall_Pieces" unique_id=1167801925]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 2.25, 0)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Pieces_To_Copy/Wall_Pieces/Copy_Wall_Pink_Short" unique_id=179181060]
+material_override = SubResource("PinkWallMaterial")
+mesh = SubResource("ShortWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Wall_Pieces/Copy_Wall_Pink_Short" unique_id=430548084]
+shape = SubResource("ShortWallShape")
+
+[node name="Enemy_Pieces" type="Node3D" parent="Pieces_To_Copy" unique_id=1881083012]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 100)
+
+[node name="Copy_DiscoBall" type="CharacterBody3D" parent="Pieces_To_Copy/Enemy_Pieces" unique_id=840491289]
+transform = Transform3D(1.8, 0, 0, 0, 1.8, 0, 0, 0, 1.8, -10.792686, 0.05, -343.694)
+collision_layer = 2
+script = ExtResource("7_monster_target")
+hover_height = 0.55
+hover_speed = 1.25
+title = "DISCO BALL"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Enemy_Pieces/Copy_DiscoBall" unique_id=201693414]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+shape = SubResource("DiscoCapsule")
+
+[node name="Visual" parent="Pieces_To_Copy/Enemy_Pieces/Copy_DiscoBall" unique_id=28491664 instance=ExtResource("8_disco_ball")]
+
+[node name="Copy_Speaker" type="CharacterBody3D" parent="Pieces_To_Copy/Enemy_Pieces" unique_id=1817469115]
+transform = Transform3D(1.8, 0, 0, 0, 1.8, 0, 0, 0, 1.8, -19.881414, 3.619064, -473.09082)
+collision_layer = 2
+script = ExtResource("7_monster_target")
+required_key = "E"
+title = "SPEAKER"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Enemy_Pieces/Copy_Speaker" unique_id=1065795805]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("SpeakerCapsule")
+
+[node name="Visual" parent="Pieces_To_Copy/Enemy_Pieces/Copy_Speaker" unique_id=530288454 instance=ExtResource("9_speaker")]
+
+[node name="Copy_Microphone" type="CharacterBody3D" parent="Pieces_To_Copy/Enemy_Pieces" unique_id=675985811]
+transform = Transform3D(1.8, 0, 0, 0, 1.8, 0, 0, 0, 1.8, -39.302162, 2.2160919, -501.34412)
+collision_layer = 2
+script = ExtResource("7_monster_target")
+required_key = "R"
+hover_height = 0.28
+hover_speed = 1.6
+title = "MICROPHONE"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pieces_To_Copy/Enemy_Pieces/Copy_Microphone" unique_id=1374420369]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.714387, 0)
+shape = SubResource("MicrophoneCapsule")
+
+[node name="Visual" parent="Pieces_To_Copy/Enemy_Pieces/Copy_Microphone" unique_id=587282881 instance=ExtResource("10_microphone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3.864387, 0)
+
+[node name="Enemies" type="Node3D" parent="." unique_id=206883471]
+
+[node name="Shadow" type="CharacterBody3D" parent="Enemies" unique_id=2070379242]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3, 0.05, -8)
+collision_layer = 2
+floor_max_angle = 0.837758
+floor_snap_length = 0.35
+script = ExtResource("11_shadow_script")
+finish_z = -1000000.0
+course_traversal_assist = true
+jump_velocity = 16.0
+gravity = 22.0
+track_side_limit = 6.2
+wall_run_duration = 1.35
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Enemies/Shadow" unique_id=2008814842]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("ShadowCapsule")
+
+[node name="EnemyRunner" parent="Enemies/Shadow" unique_id=1462687864 instance=ExtResource("12_shadow_visual")]
+
+[node name="FinishLine" type="Node3D" parent="." unique_id=1096070092]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -14.3, -423.7)
+
+[node name="LeftPost" type="MeshInstance3D" parent="FinishLine" unique_id=1721746754]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 3, 0)
+material_override = SubResource("FinishNeon")
+mesh = SubResource("FinishPostMesh")
+
+[node name="RightPost" type="MeshInstance3D" parent="FinishLine" unique_id=1991627218]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 3, 0)
+material_override = SubResource("FinishNeon")
+mesh = SubResource("FinishPostMesh")
+
+[node name="Header" type="MeshInstance3D" parent="FinishLine" unique_id=867972176]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.9, 0)
+material_override = SubResource("FinishNeon")
+mesh = SubResource("FinishHeaderMesh")
+
+[node name="GroundStripe" type="MeshInstance3D" parent="FinishLine" unique_id=1626271916]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0)
+material_override = SubResource("FinishNeon")
+mesh = SubResource("FinishStripeMesh")
+
+[node name="FinishText" type="Label3D" parent="FinishLine" unique_id=931556982]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.8, 0)
+pixel_size = 0.01
+modulate = Color(1, 0.9, 0.55, 1)
+outline_modulate = Color(0.18, 0.04, 0.16, 1)
+text = "FINISH"
+font_size = 64
+
+[node name="PauseMenu" parent="." instance=ExtResource("13_pause_menu")]
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=484129271]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 8)
+collision_layer = 4
+floor_max_angle = 0.837758
+floor_snap_length = 0.35
+script = ExtResource("1_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player" unique_id=1139022221]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("PlayerCapsule")
+
+[node name="Runner" parent="Player" unique_id=597024528 instance=ExtResource("2_runner")]
+
+[node name="CameraPivot" type="Node3D" parent="Player" unique_id=1389847282]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="Player/CameraPivot" unique_id=565353851]
+spring_length = 5.8
+margin = 0.4
+
+[node name="Camera3D" type="Camera3D" parent="Player/CameraPivot/SpringArm3D" unique_id=1140375319]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.15)
+current = true
+fov = 78.0
+
+[node name="Wall_Right_03" type="StaticBody3D" parent="." unique_id=196657568]
+transform = Transform3D(1, 0, 0, 0, 1.5926372, 0, 0, 0, 4.4625416, -22.173473, 2.25, -199.00426)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Wall_Right_03" unique_id=1459984222]
+transform = Transform3D(0.99999404, 0, 0, 0, 0.9999899, 0, 0, 0, 0.99999976, 21.10441, 0, -2.959877)
+material_override = SubResource("PinkWallMaterial")
+mesh = SubResource("ShortWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_Right_03" unique_id=38478770]
+transform = Transform3D(0.99999404, 0, 0, 0, 0.9999899, 0, 0, 0, 0.99999976, 21.10441, 0, -2.959877)
+shape = SubResource("ShortWallShape")
+
+[node name="Wall_Right_04" type="StaticBody3D" parent="." unique_id=757452350]
+transform = Transform3D(1, 0, 0, 0, 1.5926372, 0, 0, 0, 4.4625416, -22.173473, 9.111092, -233.25772)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Wall_Right_04" unique_id=1347670475]
+transform = Transform3D(0.99999404, 0, 0, 0, 0.9999899, 0, 0, 0, 0.99999976, 21.10441, 0, -2.959877)
+material_override = SubResource("PinkWallMaterial")
+mesh = SubResource("ShortWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_Right_04" unique_id=757445136]
+transform = Transform3D(0.99999404, 0, 0, 0, 0.9999899, 0, 0, 0, 0.99999976, 21.10441, 0, -2.959877)
+shape = SubResource("ShortWallShape")
+
+[node name="Wall_Right_04" type="StaticBody3D" parent="Wall_Right_04" unique_id=92894180]
+transform = Transform3D(0.9999997, 0, 0, 0, 1.5926365, 0, 0, 0, 1.5641664, -22.173471, -16.559135, -14.441574)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Wall_Right_04/Wall_Right_04" unique_id=577530157]
+transform = Transform3D(0.9999946, 0, 0, 0, 1.0243188, 0, 0, 0, 0.21516158, 52.049816, 9.797386, -1.120224)
+material_override = SubResource("PinkWallMaterial")
+mesh = SubResource("ShortWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_Right_04/Wall_Right_04" unique_id=745114405]
+transform = Transform3D(0.9999946, 0, 0, 0, 1.0243188, 0, 0, 0, 0.21516158, 52.049816, 9.797386, -1.120224)
+shape = SubResource("ShortWallShape")
+
+[node name="Wall_Left_03" type="StaticBody3D" parent="." unique_id=64997365]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3408766, 9.243546, -239.59511)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Wall_Left_03" unique_id=90113780]
+transform = Transform3D(1, 0, 0, 0, 1.5789881, 0, 0, 0, 3.594695, 2.1146164, -0.41511345, -14.310837)
+material_override = SubResource("BlueWallMaterial")
+mesh = SubResource("ShortWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_Left_03" unique_id=1163175319]
+transform = Transform3D(1, 0, 0, 0, 1.5789881, 0, 0, 0, 3.594695, 2.1146164, -0.41511345, -14.310837)
+shape = SubResource("ShortWallShape")
+
+[node name="Platform_01" type="StaticBody3D" parent="." unique_id=1233712549]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.539171, -0.175, -269.94397)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platform_01" unique_id=370512659]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0659008, 0, 7.494049)
+material_override = SubResource("BluePlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platform_01" unique_id=1274565298]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0659008, 0, 7.494049)
+shape = SubResource("MediumShape")
+
+[node name="Platform_01" type="StaticBody3D" parent="Platform_01" unique_id=1531334224]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.62488675, -18.565918, -0.09370728, -18.663757)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platform_01/Platform_01" unique_id=819052814]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0659008, 0, 7.494049)
+material_override = SubResource("BluePlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platform_01/Platform_01" unique_id=288945246]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0659008, 0, 7.494049)
+shape = SubResource("MediumShape")
+
+[node name="Copy_Platform_Yellow_Narrow" type="StaticBody3D" parent="." unique_id=736837963]
+transform = Transform3D(0.7038195, 0, 0, 0, 1, 0, 0, 0, 2.7050195, 18.46349, -1.0943782, -209.12083)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Copy_Platform_Yellow_Narrow" unique_id=2053949941]
+material_override = SubResource("YellowPlatformNeon")
+mesh = SubResource("NarrowMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Copy_Platform_Yellow_Narrow" unique_id=545603170]
+shape = SubResource("NarrowShape")
+
+[node name="Wall_Right_05" type="StaticBody3D" parent="." unique_id=115131823]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.623096, 2.25, -196.20807)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Wall_Right_05" unique_id=553896342]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.332264, 0, 0)
+material_override = SubResource("PinkWallMaterial")
+mesh = SubResource("ShortWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_Right_05" unique_id=976451273]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.332264, 0, 0)
+shape = SubResource("ShortWallShape")
+
+[node name="Wall_Right_06" type="StaticBody3D" parent="." unique_id=782474708]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.623096, 2.25, -218.18439)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Wall_Right_06" unique_id=1725181538]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.332264, 0, 0)
+material_override = SubResource("PinkWallMaterial")
+mesh = SubResource("ShortWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_Right_06" unique_id=621388457]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.332264, 0, 0)
+shape = SubResource("ShortWallShape")
+
+[node name="Platform_02" type="StaticBody3D" parent="." unique_id=1005592462]
+transform = Transform3D(1.1396676, 0, 0, 0, 1, 0, 0, 0, 0.48681682, 5.37167, -1.7697952, -279.4992)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platform_02" unique_id=1594913089]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.1597471, -0.6516917, 10.620167)
+material_override = SubResource("PinkPlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platform_02" unique_id=1715862187]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.1597471, -0.6516917, 10.620167)
+shape = SubResource("MediumShape")
+
+[node name="Copy_Platform_Yellow_Narrow2" type="StaticBody3D" parent="." unique_id=570124603]
+transform = Transform3D(0.7038195, 0, 0, 0, 1, 0, 0, 0, 2.7050195, 2.1523552, 5.557584, -306.309)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Copy_Platform_Yellow_Narrow2" unique_id=215132657]
+material_override = SubResource("YellowPlatformNeon")
+mesh = SubResource("NarrowMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Copy_Platform_Yellow_Narrow2" unique_id=241025608]
+shape = SubResource("NarrowShape")
+
+[node name="Platform_03" type="StaticBody3D" parent="." unique_id=1104695486]
+transform = Transform3D(0.49355003, 0, 0, 0, 1, 0, 0, 0, 0.48681682, -7.9625797, 2.0988934, -298.12)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platform_03" unique_id=2107341945]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.1597471, -0.6516917, 10.620167)
+material_override = SubResource("PinkPlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platform_03" unique_id=1247620913]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.1597471, -0.6516917, 10.620167)
+shape = SubResource("MediumShape")
+
+[node name="Platform_04" type="StaticBody3D" parent="." unique_id=144710099]
+transform = Transform3D(0.36871213, 0, 0, 0, 1, 0, 0, 0, 0.62488675, -6.506534, 3.47235, -307.42377)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platform_04" unique_id=458412671]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0659008, 0, 7.494049)
+material_override = SubResource("BluePlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platform_04" unique_id=1476562505]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0659008, 0, 7.494049)
+shape = SubResource("MediumShape")
+
+[node name="Platform_05" type="StaticBody3D" parent="." unique_id=1010063474]
+transform = Transform3D(0.36871213, 0, 0, 0, 1, 0, 0, 0, 1.5140847, 5.8550515, 3.47235, -357.16122)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platform_05" unique_id=364998936]
+transform = Transform3D(1.1086563, 0, 0, 0, 1, 0, 0, 0, 1, 12.5974245, 0, 7.494049)
+material_override = SubResource("BluePlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platform_05" unique_id=823920399]
+transform = Transform3D(1.1086563, 0, 0, 0, 1, 0, 0, 0, 1, 12.5974245, 0, 7.494049)
+shape = SubResource("MediumShape")
+
+[node name="Platform_06" type="StaticBody3D" parent="." unique_id=1204361412]
+transform = Transform3D(0.49355003, 0, 0, 0, 1, 0, 0, 0, 1.7806822, -7.9625797, -5.462159, -393.27448)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Platform_06" unique_id=388010857]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.1597471, -0.6516917, 10.620167)
+material_override = SubResource("PinkPlatformNeon")
+mesh = SubResource("MediumMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Platform_06" unique_id=577264281]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.1597471, -0.6516917, 10.620167)
+shape = SubResource("MediumShape")
+
+[node name="Wall_Left_04" type="StaticBody3D" parent="." unique_id=1894999196]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.23948038, -5.218787, 9.243546, -290.21716)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Wall_Left_04" unique_id=917000075]
+transform = Transform3D(1, 0, 0, 0, 1.5789881, 0, 0, 0, 3.594695, 2.1146164, -0.41511345, -14.310837)
+material_override = SubResource("BlueWallMaterial")
+mesh = SubResource("ShortWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_Left_04" unique_id=635229698]
+transform = Transform3D(1, 0, 0, 0, 1.5789881, 0, 0, 0, 3.594695, 2.1146164, -0.41511345, -14.310837)
+shape = SubResource("ShortWallShape")
+
+[node name="Wall_Left_05" type="StaticBody3D" parent="." unique_id=673082592]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.23948038, -5.667905, 9.243546, -313.38165)
+script = ExtResource("5_platform_sync")
+
+[node name="Mesh" type="MeshInstance3D" parent="Wall_Left_05" unique_id=573449497]
+transform = Transform3D(1, 0, 0, 0, 1.5789881, 0, 0, 0, 3.594695, 2.1146164, -0.41511345, -14.310837)
+material_override = SubResource("BlueWallMaterial")
+mesh = SubResource("ShortWallMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_Left_05" unique_id=583050585]
+transform = Transform3D(1, 0, 0, 0, 1.5789881, 0, 0, 0, 3.594695, 2.1146164, -0.41511345, -14.310837)
+shape = SubResource("ShortWallShape")

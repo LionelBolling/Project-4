@@ -1,0 +1,442 @@
+[gd_scene load_steps=32 format=3]
+
+[ext_resource type="Script" path="res://scripts/level_3_beta.gd" id="1_scene"]
+[ext_resource type="Script" path="res://scripts/movement_test_player.gd" id="2_player"]
+[ext_resource type="PackedScene" path="res://runner/runner.tscn" id="3_runner"]
+[ext_resource type="Script" path="res://scripts/monster_qte_target.gd" id="4_target"]
+[ext_resource type="PackedScene" path="res://monsters/disco_ball/disco_ball.tscn" id="5_disco"]
+[ext_resource type="PackedScene" path="res://monsters/speaker/speaker.tscn" id="6_speaker"]
+[ext_resource type="PackedScene" path="res://monsters/microphone/microphone.tscn" id="7_microphone"]
+[ext_resource type="Script" path="res://scripts/race_opponent.gd" id="8_shadow_script"]
+[ext_resource type="PackedScene" path="res://enemy_runner/enemy_runner.tscn" id="9_shadow_visual"]
+[ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="12_pause_menu"]
+[ext_resource type="Script" uid="uid://gff2uxjlsylw" path="res://scripts/level_1_backdrop.gd" id="10_backdrop"]
+[ext_resource type="Shader" uid="uid://c8rqfh7sr7wnd" path="res://shaders/pink_gradient_sky.gdshader" id="11_pink_sky"]
+
+[sub_resource type="ShaderMaterial" id="PinkGradientSky"]
+shader = ExtResource("11_pink_sky")
+shader_parameter/top_color = Color(1, 0.97, 0.985, 1)
+shader_parameter/middle_color = Color(1, 0.84, 0.9, 1)
+shader_parameter/bottom_color = Color(0.92, 0.31, 0.5, 1)
+
+[sub_resource type="Sky" id="LevelSky"]
+sky_material = SubResource("PinkGradientSky")
+
+[sub_resource type="Environment" id="LevelEnvironment"]
+background_mode = 2
+sky = SubResource("LevelSky")
+ambient_light_source = 1
+ambient_light_color = Color(0.7, 0.62, 0.72, 1)
+ambient_light_energy = 0.7
+glow_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="RoadMaterial"]
+albedo_color = Color(0.105, 0.078, 0.19, 1)
+metallic = 0.08
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="CyanNeon"]
+shading_mode = 0
+albedo_color = Color(0.08, 0.89, 0.96, 1)
+emission_enabled = true
+emission = Color(0.06, 0.8, 1, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="StandardMaterial3D" id="PinkNeon"]
+shading_mode = 0
+albedo_color = Color(0.95, 0.08, 0.53, 1)
+emission_enabled = true
+emission = Color(1, 0.04, 0.46, 1)
+emission_energy_multiplier = 1.2
+
+[sub_resource type="BoxMesh" id="RoadMesh"]
+size = Vector3(16, 0.35, 352)
+material = SubResource("RoadMaterial")
+
+[sub_resource type="BoxShape3D" id="RoadShape"]
+size = Vector3(16, 0.35, 352)
+
+[sub_resource type="StandardMaterial3D" id="WallMaterial"]
+albedo_color = Color(0.13, 0.095, 0.22, 1)
+metallic = 0.22
+roughness = 0.48
+
+[sub_resource type="StandardMaterial3D" id="BlueWallNeon"]
+shading_mode = 0
+albedo_color = Color(0.08, 0.89, 0.96, 1)
+emission_enabled = true
+emission = Color(0.06, 0.8, 1, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="StandardMaterial3D" id="PinkWallNeon"]
+shading_mode = 0
+albedo_color = Color(0.95, 0.08, 0.53, 1)
+emission_enabled = true
+emission = Color(1, 0.04, 0.46, 1)
+emission_energy_multiplier = 1.2
+
+[sub_resource type="BoxMesh" id="BackWallMesh"]
+material = SubResource("WallMaterial")
+size = Vector3(0.8, 6.5, 18)
+
+[sub_resource type="BoxShape3D" id="BackWallShape"]
+size = Vector3(0.8, 6.5, 18)
+
+[sub_resource type="BoxMesh" id="NeonStrip"]
+size = Vector3(0.12, 0.035, 350)
+
+[sub_resource type="StandardMaterial3D" id="FinishNeon"]
+shading_mode = 0
+albedo_color = Color(1, 0.82, 0.18, 1)
+
+[sub_resource type="BoxMesh" id="FinishPostMesh"]
+size = Vector3(0.38, 6, 0.38)
+
+[sub_resource type="BoxMesh" id="FinishHeaderMesh"]
+size = Vector3(19, 0.45, 0.42)
+
+[sub_resource type="BoxMesh" id="FinishStripeMesh"]
+size = Vector3(19, 0.06, 0.9)
+
+[sub_resource type="CapsuleShape3D" id="PlayerCapsule"]
+radius = 0.34
+height = 1.8
+
+[sub_resource type="CapsuleShape3D" id="DiscoCapsule"]
+radius = 1.1
+height = 2.6
+
+[sub_resource type="CapsuleShape3D" id="SpeakerCapsule"]
+radius = 0.9
+height = 2.0
+
+[sub_resource type="CapsuleShape3D" id="MicrophoneCapsule"]
+radius = 0.75
+height = 2.3
+
+[sub_resource type="CapsuleShape3D" id="ShadowCapsule"]
+radius = 0.34
+height = 1.8
+
+[node name="Level3Beta" type="Node3D"]
+script = ExtResource("1_scene")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("LevelEnvironment")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-48, -28, 0)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="BackdropShapes" type="Node3D" parent="."]
+script = ExtResource("10_backdrop")
+
+[node name="Corridor" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.175, -161)
+collision_layer = 1
+collision_mask = 1
+
+[node name="RoadMesh" type="MeshInstance3D" parent="Corridor"]
+mesh = SubResource("RoadMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Corridor"]
+shape = SubResource("RoadShape")
+
+[node name="LeftNeonEdge" type="MeshInstance3D" parent="Corridor"]
+position = Vector3(-7.7, 0.19, 0)
+mesh = SubResource("NeonStrip")
+material_override = SubResource("CyanNeon")
+
+[node name="RightNeonEdge" type="MeshInstance3D" parent="Corridor"]
+position = Vector3(7.7, 0.19, 0)
+mesh = SubResource("NeonStrip")
+material_override = SubResource("PinkNeon")
+
+[node name="Player" type="CharacterBody3D" parent="."]
+position = Vector3(0, 0.05, 8)
+collision_layer = 4
+collision_mask = 1
+floor_snap_length = 0.35
+floor_max_angle = 0.837758
+script = ExtResource("2_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("PlayerCapsule")
+
+[node name="Runner" parent="Player" instance=ExtResource("3_runner")]
+
+[node name="CameraPivot" type="Node3D" parent="Player"]
+position = Vector3(0, 1.85, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="Player/CameraPivot"]
+spring_length = 5.8
+margin = 0.4
+collision_mask = 1
+
+[node name="Camera3D" type="Camera3D" parent="Player/CameraPivot/SpringArm3D"]
+position = Vector3(0, 0, 0.15)
+fov = 78.0
+current = true
+
+[node name="DiscoBall" type="CharacterBody3D" parent="."]
+position = Vector3(-1.6, 0.05, -34)
+scale = Vector3(1.8, 1.8, 1.8)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("4_target")
+required_key = "Q"
+hover_height = 0.55
+hover_speed = 1.25
+title = "DISCO BALL"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DiscoBall"]
+position = Vector3(0, 1.3, 0)
+shape = SubResource("DiscoCapsule")
+
+[node name="Visual" parent="DiscoBall" instance=ExtResource("5_disco")]
+
+[node name="Speaker" type="CharacterBody3D" parent="."]
+position = Vector3(1.8, 0.05, -100)
+scale = Vector3(1.8, 1.8, 1.8)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("4_target")
+required_key = "E"
+title = "SPEAKER"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Speaker"]
+position = Vector3(0, 1, 0)
+shape = SubResource("SpeakerCapsule")
+
+[node name="Visual" parent="Speaker" instance=ExtResource("6_speaker")]
+
+[node name="Microphone" type="CharacterBody3D" parent="."]
+position = Vector3(-1.5, 0.05, -166)
+scale = Vector3(1.8, 1.8, 1.8)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("4_target")
+required_key = "R"
+hover_height = 0.28
+hover_speed = 1.6
+title = "MICROPHONE"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Microphone"]
+position = Vector3(0, 1.15, 0)
+shape = SubResource("MicrophoneCapsule")
+
+[node name="Visual" parent="Microphone" instance=ExtResource("7_microphone")]
+
+[node name="DiscoBall2" type="CharacterBody3D" parent="."]
+position = Vector3(-1.5, 0.05, -202)
+scale = Vector3(1.8, 1.8, 1.8)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("4_target")
+required_key = "Q"
+hover_height = 0.55
+hover_speed = 1.25
+title = "DISCO BALL 2"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DiscoBall2"]
+position = Vector3(0, 1.3, 0)
+shape = SubResource("DiscoCapsule")
+
+[node name="Visual" parent="DiscoBall2" instance=ExtResource("5_disco")]
+
+[node name="Speaker2" type="CharacterBody3D" parent="."]
+position = Vector3(1.5, 0.05, -216)
+scale = Vector3(1.8, 1.8, 1.8)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("4_target")
+required_key = "E"
+title = "SPEAKER 2"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Speaker2"]
+position = Vector3(0, 1, 0)
+shape = SubResource("SpeakerCapsule")
+
+[node name="Visual" parent="Speaker2" instance=ExtResource("6_speaker")]
+
+[node name="Microphone2" type="CharacterBody3D" parent="."]
+position = Vector3(-1.5, 0.05, -230)
+scale = Vector3(1.8, 1.8, 1.8)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("4_target")
+required_key = "R"
+hover_height = 0.28
+hover_speed = 1.6
+title = "MICROPHONE 2"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Microphone2"]
+position = Vector3(0, 1.15, 0)
+shape = SubResource("MicrophoneCapsule")
+
+[node name="Visual" parent="Microphone2" instance=ExtResource("7_microphone")]
+
+[node name="BackWallLeftA" type="StaticBody3D" parent="."]
+position = Vector3(-7.5, 3.25, -268)
+
+[node name="WallMesh" type="MeshInstance3D" parent="BackWallLeftA"]
+mesh = SubResource("BackWallMesh")
+material_override = SubResource("BlueWallNeon")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BackWallLeftA"]
+shape = SubResource("BackWallShape")
+
+[node name="BackWallRightA" type="StaticBody3D" parent="."]
+position = Vector3(7.5, 3.25, -268)
+
+[node name="WallMesh" type="MeshInstance3D" parent="BackWallRightA"]
+mesh = SubResource("BackWallMesh")
+material_override = SubResource("PinkWallNeon")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BackWallRightA"]
+shape = SubResource("BackWallShape")
+
+[node name="BackWallLeftB" type="StaticBody3D" parent="."]
+position = Vector3(-7.5, 3.25, -298)
+
+[node name="WallMesh" type="MeshInstance3D" parent="BackWallLeftB"]
+mesh = SubResource("BackWallMesh")
+material_override = SubResource("BlueWallNeon")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BackWallLeftB"]
+shape = SubResource("BackWallShape")
+
+[node name="BackWallRightB" type="StaticBody3D" parent="."]
+position = Vector3(7.5, 3.25, -298)
+
+[node name="WallMesh" type="MeshInstance3D" parent="BackWallRightB"]
+mesh = SubResource("BackWallMesh")
+material_override = SubResource("PinkWallNeon")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BackWallRightB"]
+shape = SubResource("BackWallShape")
+
+[node name="BackWallLeftC" type="StaticBody3D" parent="."]
+position = Vector3(-7.5, 3.25, -328)
+
+[node name="WallMesh" type="MeshInstance3D" parent="BackWallLeftC"]
+mesh = SubResource("BackWallMesh")
+material_override = SubResource("BlueWallNeon")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BackWallLeftC"]
+shape = SubResource("BackWallShape")
+
+[node name="BackWallRightC" type="StaticBody3D" parent="."]
+position = Vector3(7.5, 3.25, -328)
+
+[node name="WallMesh" type="MeshInstance3D" parent="BackWallRightC"]
+mesh = SubResource("BackWallMesh")
+material_override = SubResource("PinkWallNeon")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BackWallRightC"]
+shape = SubResource("BackWallShape")
+
+[node name="FinishLine" type="Node3D" parent="."]
+position = Vector3(0, 0, -332)
+
+[node name="LeftPost" type="MeshInstance3D" parent="FinishLine"]
+position = Vector3(-9, 3, 0)
+material_override = SubResource("FinishNeon")
+mesh = SubResource("FinishPostMesh")
+
+[node name="RightPost" type="MeshInstance3D" parent="FinishLine"]
+position = Vector3(9, 3, 0)
+material_override = SubResource("FinishNeon")
+mesh = SubResource("FinishPostMesh")
+
+[node name="Header" type="MeshInstance3D" parent="FinishLine"]
+position = Vector3(0, 5.9, 0)
+material_override = SubResource("FinishNeon")
+mesh = SubResource("FinishHeaderMesh")
+
+[node name="GroundStripe" type="MeshInstance3D" parent="FinishLine"]
+position = Vector3(0, 0.08, 0)
+material_override = SubResource("FinishNeon")
+mesh = SubResource("FinishStripeMesh")
+
+[node name="FinishText" type="Label3D" parent="FinishLine"]
+position = Vector3(0, 6.8, 0)
+pixel_size = 0.01
+modulate = Color(1, 0.9, 0.55, 1)
+outline_modulate = Color(0.18, 0.04, 0.16, 1)
+text = "FINISH"
+font_size = 64
+
+[node name="DiscoBall3" type="CharacterBody3D" parent="."]
+position = Vector3(0, 0.05, -344)
+scale = Vector3(1.8, 1.8, 1.8)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("4_target")
+required_key = "Q"
+hover_height = 0.55
+hover_speed = 1.25
+title = "DISCO BALL 3"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DiscoBall3"]
+position = Vector3(0, 1.3, 0)
+shape = SubResource("DiscoCapsule")
+
+[node name="Visual" parent="DiscoBall3" instance=ExtResource("5_disco")]
+
+[node name="DiscoBall4" type="CharacterBody3D" parent="."]
+position = Vector3(0, 0.05, -362)
+scale = Vector3(1.8, 1.8, 1.8)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("4_target")
+required_key = "Q"
+hover_height = 0.55
+hover_speed = 1.25
+title = "DISCO BALL 4"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DiscoBall4"]
+position = Vector3(0, 1.3, 0)
+shape = SubResource("DiscoCapsule")
+
+[node name="Visual" parent="DiscoBall4" instance=ExtResource("5_disco")]
+
+[node name="DiscoBall5" type="CharacterBody3D" parent="."]
+position = Vector3(0, 0.05, -380)
+scale = Vector3(1.8, 1.8, 1.8)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("4_target")
+required_key = "Q"
+hover_height = 0.55
+hover_speed = 1.25
+title = "DISCO BALL 5"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DiscoBall5"]
+position = Vector3(0, 1.3, 0)
+shape = SubResource("DiscoCapsule")
+
+[node name="Visual" parent="DiscoBall5" instance=ExtResource("5_disco")]
+
+[node name="Enemies" type="Node3D" parent="."]
+
+[node name="Shadow" type="CharacterBody3D" parent="Enemies"]
+position = Vector3(1.3, 0.05, 2.0)
+collision_layer = 2
+collision_mask = 1
+floor_snap_length = 0.35
+floor_max_angle = 0.837758
+script = ExtResource("8_shadow_script")
+finish_z = -332.0
+straight_run = true
+track_side_limit = 6.2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Enemies/Shadow"]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("ShadowCapsule")
+
+[node name="EnemyRunner" parent="Enemies/Shadow" instance=ExtResource("9_shadow_visual")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("12_pause_menu")]

@@ -1,0 +1,94 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/title_screen.gd" id="1_title"]
+[ext_resource type="PackedScene" path="res://runner/runner.tscn" id="2_runner"]
+[ext_resource type="PackedScene" path="res://enemy_runner/enemy_runner.tscn" id="3_shadow"]
+
+[sub_resource type="Environment" id="TitleEnvironment"]
+background_mode = 1
+background_color = Color(0.035, 0.018, 0.09, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.55, 0.35, 0.8, 1)
+ambient_light_energy = 0.75
+glow_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StageMaterial"]
+albedo_color = Color(0.09, 0.045, 0.16, 1)
+metallic = 0.3
+roughness = 0.36
+
+[sub_resource type="StandardMaterial3D" id="PinkNeon"]
+shading_mode = 0
+albedo_color = Color(1, 0.12, 0.58, 1)
+emission_enabled = true
+emission = Color(1, 0.04, 0.48, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="StandardMaterial3D" id="BlueNeon"]
+shading_mode = 0
+albedo_color = Color(0.08, 0.78, 1, 1)
+emission_enabled = true
+emission = Color(0.02, 0.6, 1, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="BoxMesh" id="StageMesh"]
+material = SubResource("StageMaterial")
+size = Vector3(6.5, 0.4, 3.2)
+
+[sub_resource type="BoxMesh" id="TrimMesh"]
+size = Vector3(6.3, 0.045, 0.1)
+
+[node name="TitleScreen" type="Node3D"]
+script = ExtResource("1_title")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("TitleEnvironment")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.65, -0.45, 0)
+light_color = Color(1, 0.72, 0.86, 1)
+light_energy = 1.35
+shadow_enabled = true
+
+[node name="PinkRimLight" type="OmniLight3D" parent="."]
+position = Vector3(-3.4, 2.4, -1.2)
+light_color = Color(1, 0.04, 0.44, 1)
+light_energy = 4.0
+omni_range = 8.0
+
+[node name="BlueRimLight" type="OmniLight3D" parent="."]
+position = Vector3(3.4, 2.8, -0.8)
+light_color = Color(0.04, 0.55, 1, 1)
+light_energy = 4.0
+omni_range = 8.0
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(0, 2.65, 7.9)
+rotation = Vector3(-0.13, 0, 0)
+current = true
+fov = 49.0
+
+[node name="Stage" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.2, 0)
+mesh = SubResource("StageMesh")
+
+[node name="FrontPinkTrim" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.015, 1.56)
+material_override = SubResource("PinkNeon")
+mesh = SubResource("TrimMesh")
+
+[node name="FrontBlueTrim" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.015, -1.56)
+material_override = SubResource("BlueNeon")
+mesh = SubResource("TrimMesh")
+
+[node name="Player" parent="." instance=ExtResource("2_runner")]
+position = Vector3(-0.95, 0, 0)
+rotation = Vector3(0, 0, 0)
+autoplay_animation = &"Idle"
+
+[node name="Shadow" parent="." instance=ExtResource("3_shadow")]
+position = Vector3(0.95, 0, 0)
+rotation = Vector3(0, 0, 0)
+autoplay_animation = &"Idle"
+belt_physics_enabled = true
