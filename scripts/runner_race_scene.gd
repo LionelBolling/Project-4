@@ -51,9 +51,9 @@ func _process(delta: float) -> void:
 		_update_race_hud()
 		if rival.touches_player_hazard(player.global_position + Vector3.UP * 0.9):
 			player.play_hurt_animation()
-		if player.global_position.z <= FINISH_Z and player.velocity.z < 0.0:
+		if player.global_position.z <= _finish_position() and player.velocity.z < 0.0:
 			_finish_race(true)
-		elif rival.global_position.z <= FINISH_Z:
+		elif rival.global_position.z <= _finish_position():
 			_finish_race(false)
 	elif race_state == "FINISHED":
 		_update_race_hud()
@@ -221,8 +221,11 @@ func _clear_environment_holes() -> void:
 	surface_replacements.clear()
 	projectile_hole_count = 0
 
+func _finish_position() -> float:
+	return FINISH_Z
+
 func _update_race_hud() -> void:
-	var total_distance := START_Z - FINISH_Z
+	var total_distance := START_Z - _finish_position()
 	var player_progress := clampf((START_Z - player.global_position.z) / total_distance, 0.0, 1.0)
 	var rival_progress := clampf((START_Z - rival.global_position.z) / total_distance, 0.0, 1.0)
 	progress_label.text = "YOU  %3.0f%%     RIVAL  %3.0f%%" % [player_progress * 100.0, rival_progress * 100.0]

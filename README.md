@@ -36,6 +36,7 @@ Mint platforms boost running speed; rose platforms slow movement. Amber platform
 - `scenes/runner_race.tscn`: original race and current character/movement systems.
 - `scenes/bossfight.tscn`: original final confrontation, connected to the campaign.
 - `scenes/movement_test.tscn`: standalone movement sandbox.
+- `scenes/Level2.tscn`: standalone 1,000-meter parkour race, five times the original length and 60% wider, with 24 obstacle sections, 72 changing walls, and shadow QTEs every two seconds after resolution. Open this scene and press F6; it uses the campaign controls and retries after either result.
 - `scenes/main.tscn`: preserved older first-person story prototype.
 
 The standalone race and boss scenes keep their original controls: Space jump, Shift glide, Ctrl dive. Campaign controls apply only to campaign instances.

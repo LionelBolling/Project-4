@@ -1,6 +1,10 @@
 extends Node3D
 ## Campaign-only additions to the existing race controller.
 const Props = preload("res://scripts/story_props.gd")
+@export var first_encounter_delay := 4.0
+@export var encounter_interval := -1.0
+@export var segment_count := 21
+@export var course_width := 9.3
 var race
 var round_number := 1
 var prompt: Label
@@ -16,6 +20,7 @@ var time := 0.0
 func _ready() -> void:
 	race = get_parent()
 	round_number = int(race.get_meta("story_round", 1))
+	next_encounter = first_encounter_delay
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	prompt = Label.new()
@@ -27,14 +32,14 @@ func _ready() -> void:
 	prompt.add_theme_color_override("font_outline_color", Color("080a18"))
 	prompt.add_theme_constant_override("outline_size", 8)
 	layer.add_child(prompt)
-	goal = Props.tape(self, Vector3(0, 2, -194))
+	goal = Props.tape(self, Vector3(0, 2, 8 - (segment_count - 1) * 10 - 2))
 	goal.scale = Vector3.ONE * 2.2
 	_build_platforms()
 	# Different silhouettes and palettes distinguish the three sections.
 	var colors := [Color("65f5db"), Color("ad70fa"), Color("ff638d")]
-	for i in range(35):
+	for i in range(ceili(segment_count * 1.67)):
 		var side := -1.0 if i % 2 == 0 else 1.0
-		var p := Vector3(side * (10 + i % 4 * 3), -4 + i % 7, -i * 6)
+		var p := Vector3(side * (course_width + i % 4 * 3), -4 + i % 7, -i * 6)
 		var shard := Props.box(self, p, Vector3(2, 2 + round_number, 2), colors[round_number - 1], 0.6)
 		shard.rotation = Vector3(i * 0.4, i * 0.7, 0.5)
 		fragments.append(shard)
@@ -62,14 +67,14 @@ func _build_platforms() -> void:
 		var collision := wall.get_node("CollisionShape3D") as CollisionShape3D
 		collision.shape = collision.shape.duplicate()
 		collision.shape.size.y = 0.45
-	for i in range(round_number + 1):
-		race._add_solid(self, "WallRun", Vector3(-4.4 if i % 2 else 4.4, 1.8, -40 - i * 48), Vector3(0.3, 3.6, 18), race._material(Color("563b82"), 0.6))
-	for i in range(21):
+	for i in range(maxi(round_number + 1, floori(segment_count / 7.0))):
+		race._add_solid(self, "WallRun", Vector3((-1 if i % 2 else 1) * (course_width / 2 - 0.25), 1.8, -40 - i * 48), Vector3(0.3, 3.6, 18), race._material(Color("563b82"), 0.6))
+	for i in range(segment_count):
 		var kind := i % 4
 		var color: Color = [Color("252842"), Color("65f5db"), Color("aa547e"), Color("ffd384")][kind]
 		var p := Vector3(0, -0.25, 8 - i * 10)
 		var gap := 0.0 if i < 2 else (0.6 + round_number * 0.5)
-		race._add_solid(self, "Raceway", p, Vector3(9.3, 0.5, 10.0 - gap), race._material(color, 0.3))
+		race._add_solid(self, "Raceway", p, Vector3(course_width, 0.5, 10.0 - gap), race._material(color, 0.3))
 		var body := get_child(get_child_count() - 1) as StaticBody3D
 		surfaces.append({"body": body, "home": p, "kind": kind, "collapse": -1.0, "restore": 0.0, "corrupt": false})
 		if i > 2 and i % 5 == 0:
@@ -78,7 +83,7 @@ func _build_platforms() -> void:
 
 func reset() -> void:
 	qte_remaining = 0
-	next_encounter = 4
+	next_encounter = first_encounter_delay
 	prompt.text = ""
 	if is_instance_valid(monster): monster.queue_free()
 	race.player.story_boost_time = 0
@@ -128,7 +133,7 @@ func _input(event: InputEvent) -> void:
 func resolve(success: bool) -> void:
 	race.player.apply_story_qte(success)
 	qte_remaining = 0
-	next_encounter = 7.0 - round_number
+	next_encounter = encounter_interval if encounter_interval > 0 else 7.0 - round_number
 	prompt.text = ""
 	if is_instance_valid(monster):
 		var tween := create_tween()
