@@ -10,8 +10,8 @@ config_version=5
 
 [application]
 
-config/name="Project-4"
-run/main_scene="res://scenes/monstersTest.tscn"
+config/name="Rewind"
+run/main_scene="res://scenes/rewind.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 

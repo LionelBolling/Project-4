@@ -79,6 +79,9 @@ var jump_start_timer := 0.0
 var jump_pending := false
 var coyote_timer := 0.0
 var dive_timer := 0.0
+var story_boost_time := 0.0
+var story_surface_multiplier := 1.0
+var story_base_speed := 0.0
 var dive_target_speed := 0.0
 var dive_lockout := 0.0
 var dive_repeat_speed_bonus := 0.0
@@ -177,6 +180,9 @@ func _register_inputs() -> void:
 		"move_left": KEY_A, "move_right": KEY_D,
 		"jump": KEY_SPACE, "dive": KEY_CTRL, "glide": KEY_SHIFT
 	}
+	if get_parent().has_meta("story_round"):
+		bindings["dive"] = KEY_SHIFT
+		bindings["glide"] = KEY_SPACE
 	for action in bindings:
 		if not InputMap.has_action(action): InputMap.add_action(action)
 		var binding_exists := false
@@ -203,6 +209,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _physics_process(delta: float) -> void:
+	if get_parent().has_meta("story_round"):
+		if story_base_speed == 0.0: story_base_speed = run_speed
+		story_boost_time = maxf(0.0, story_boost_time - delta)
+		run_speed = story_base_speed * story_surface_multiplier * (1.3 if story_boost_time > 0.0 else 1.0)
 	if global_position.y < fall_reset_height:
 		_respawn_at_start()
 		return
@@ -253,7 +263,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		coyote_timer = maxf(0.0, coyote_timer - delta)
 		air_time += delta
-		if Input.is_action_just_pressed("glide"):
+		if Input.is_action_just_pressed("glide") or (get_parent().has_meta("story_round") and Input.is_action_pressed("glide")):
 			glide_press_armed = true
 		was_airborne = true
 	if state == "DIVE_LANDING" and grounded and jump_buffer > 0.0 and _is_near_animation_end("diveLand", dive_land_jump_cancel_window) and _can_restore_capsule():
@@ -463,6 +473,15 @@ func _physics_process(delta: float) -> void:
 	_update_body_scale(delta)
 	if status_label != null:
 		status_label.text = "STATE  %s     SPEED  %.1f" % [state, Vector2(velocity.x, velocity.z).length()]
+
+func apply_story_qte(success: bool) -> void:
+	if success:
+		story_boost_time = 5.0
+		velocity.x *= 1.3
+		velocity.z *= 1.3
+	else:
+		velocity.x *= 0.85
+		velocity.z *= 0.85
 
 func _begin_dive(direction: Vector3) -> void:
 	glide_animation_active = false
@@ -1028,4 +1047,3 @@ func _is_near_animation_end(name: String, remaining_seconds: float) -> bool:
 	if current != name and not current.ends_with("/" + name):
 		return false
 	return anim.current_animation_position >= anim.current_animation_length - remaining_seconds
-

@@ -1,6 +1,8 @@
 @tool
 extends Node3D
 
+signal story_finished
+
 const TRACK_LENGTH := 210.0
 const START_Z := 8.0
 const FINISH_Z := -192.0
@@ -76,6 +78,11 @@ func _finish_race(player_won: bool) -> void:
 	rival.set_physics_process(false)
 	player.call("_set_animation", "Idle")
 	finish_label.text = "YOU WIN!" if player_won else "RIVAL WINS"
+	if has_meta("story_round"):
+		finish_label.text = ""
+		if player_won:
+			race_state = "STORY_COMPLETE"
+			story_finished.emit()
 
 func _restart_race() -> void:
 	_clear_environment_holes()
@@ -86,6 +93,8 @@ func _restart_race() -> void:
 	race_state = "COUNTDOWN"
 	countdown_time = 3.2
 	finish_label.text = "3"
+	if has_node("StoryCourse"):
+		$StoryCourse.reset()
 
 func _on_rival_projectile_surface_impact(hit_position: Vector3, surface_normal: Vector3, surface: Object, projectile_radius: float) -> void:
 	projectile_hole_count += 1

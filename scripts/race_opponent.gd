@@ -460,6 +460,17 @@ func _perform_wall_jump() -> void:
 	_spawn_three_black_projectiles()
 
 func _pick_race_intent() -> void:
+	if get_parent().has_meta("story_round"):
+		# A repeatable racing route; the boss controller adds its attack approach.
+		_decision_timer = 0.75
+		_target_x = sin((start_position.z - global_position.z) * 0.055) * 2.6
+		_target_forward_speed = run_speed
+		if is_on_floor() and int(start_position.z - global_position.z) % 28 < 6:
+			velocity.y = jump_velocity
+			_airborne = true
+			_set_animation(&"jumpRise")
+			_spawn_three_black_projectiles()
+		return
 	_decision_timer = _rng.randf_range(decision_interval_min, maxf(decision_interval_min, decision_interval_max))
 	var candidate := global_position.x
 	for attempt in range(4):

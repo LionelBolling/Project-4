@@ -1,6 +1,8 @@
 @tool
 extends Node3D
 
+signal story_finished
+
 const SEGMENT_LENGTH := 120.0
 const SEGMENT_COUNT := 3
 const START_Z := 8.0
@@ -239,6 +241,7 @@ func _begin_qte() -> void:
 	_set_cut_camera(null, true)
 
 func _begin_player_ram() -> void:
+	if has_meta("story_round"): player.apply_story_qte(true)
 	phase = "PLAYER_RAM"
 	_clear_corridor_holes()
 	ram_timer = 0.5
@@ -280,12 +283,15 @@ func _finish_enemy_launch() -> void:
 		_hud_action.text = "YOU WIN!"
 		player.set_physics_process(false)
 		rival.set_physics_process(false)
+		if has_meta("story_round"):
+			story_finished.emit()
 		return
 	_begin_chase_cycle()
 
 func _begin_shadow_ram() -> void:
 	if phase not in ["QTE", "WAIT_APPROACH"]:
 		return
+	if has_meta("story_round"): player.apply_story_qte(false)
 	phase = "ENEMY_RAM"
 	_clear_corridor_holes()
 	ram_timer = 0.2
