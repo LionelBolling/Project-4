@@ -1,0 +1,10 @@
+; Monster asset project. No test level or gameplay controller.
+config_version=5
+
+[application]
+config/name="Retro Monsters Assets"
+config/features=PackedStringArray("4.0", "GL Compatibility")
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

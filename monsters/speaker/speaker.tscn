@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://monsters/shared/monster_character.gd" id="1"]
+[ext_resource type="PackedScene" path="res://monsters/speaker/assets/speaker.glb" id="2"]
+
+[node name="SpeakerMonster" type="Node3D"]
+script = ExtResource("1")
+config_file = "res://monsters/speaker/monster.json"
+autoplay_animation = &"idle"
+
+[node name="Model" parent="." instance=ExtResource("2")]

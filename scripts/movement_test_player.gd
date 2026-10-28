@@ -125,6 +125,7 @@ var speaker_base_scales: Array[Vector3] = []
 var speaker_beat_time := 0.0
 var hurt_animation_timer := 0.0
 var hurt_contact_cooldown_timer := 0.0
+var monster_bounce_glide_lock := 0.0
 
 func _ready() -> void:
 	spawn_position = global_position
@@ -208,6 +209,7 @@ func _physics_process(delta: float) -> void:
 	jump_buffer = maxf(0.0, jump_buffer - delta)
 	hurt_animation_timer = maxf(0.0, hurt_animation_timer - delta)
 	hurt_contact_cooldown_timer = maxf(0.0, hurt_contact_cooldown_timer - delta)
+	monster_bounce_glide_lock = maxf(0.0, monster_bounce_glide_lock - delta)
 	dive_lockout = maxf(0.0, dive_lockout - delta)
 	wall_impact_cooldown = maxf(0.0, wall_impact_cooldown - delta)
 	if not Input.is_action_pressed("dive"):
@@ -302,7 +304,7 @@ func _physics_process(delta: float) -> void:
 				state = "FALLING"
 				if not glide_animation_active:
 					_set_animation("jumpFall")
-		elif glide_held and glide_press_armed and air_time >= glide_delay and glide_timer < glide_max_duration and not glide_used_this_air and not wall_jump_animation_active:
+		elif glide_held and glide_press_armed and air_time >= glide_delay and glide_timer < glide_max_duration and not glide_used_this_air and not wall_jump_animation_active and monster_bounce_glide_lock <= 0.0:
 			var was_diving := state == "DIVING"
 			state = "GLIDING"
 			glide_timer = 0.0
@@ -607,6 +609,38 @@ func play_hurt_animation() -> bool:
 	hurt_animation_timer = clip.length / maxf(hurt_animation_speed_multiplier, 0.01)
 	_play_hurt_clip()
 	return true
+
+func launch_from_monster_bounce(forward_direction: Vector3, horizontal_speed: float, vertical_speed: float) -> void:
+	var direction := Vector3(forward_direction.x, 0.0, forward_direction.z).normalized()
+	if direction.length_squared() < 0.001:
+		direction = Vector3.FORWARD
+	velocity = direction * horizontal_speed + Vector3.UP * vertical_speed
+	state = "JUMPING"
+	jump_pending = false
+	jump_buffer = 0.0
+	jump_start_timer = 0.0
+	coyote_timer = 0.0
+	air_time = 0.0
+	was_airborne = false
+	dive_timer = 0.0
+	dive_left_ground = false
+	dive_landing_timer = 0.0
+	dive_jump_animation_active = false
+	dive_repeat_speed_bonus = 0.0
+	wall_timer = 0.0
+	wall_side = 0
+	wall_jump_animation_active = false
+	wall_regrab_lock = 0.45
+	glide_timer = 0.0
+	glide_animation_active = false
+	glide_press_armed = false
+	glide_used_this_air = false
+	monster_bounce_glide_lock = 1.1
+	hurt_animation_timer = 0.0
+	_set_capsule(false)
+	visual.position = Vector3.ZERO
+	visual.rotation = Vector3(0.0, atan2(direction.x, direction.z), 0.0)
+	_set_animation("jumpRise")
 
 func _play_hurt_clip() -> void:
 	if anim == null:

@@ -1,0 +1,50 @@
+{
+  "id": "speaker",
+  "display_name": "Speaker Monster",
+  "default_animation": "idle",
+  "animations": [
+    {
+      "name": "hurt",
+      "source_frames": [
+        0,
+        12
+      ],
+      "fps": 24.0,
+      "duration_seconds": 0.5,
+      "loop": true,
+      "eye_events": [
+        {
+          "time": 0.0,
+          "eyes": "hurt"
+        }
+      ],
+      "eye_state_source": "matching animation name"
+    },
+    {
+      "name": "idle",
+      "source_frames": [
+        0,
+        36
+      ],
+      "fps": 24.0,
+      "duration_seconds": 1.5,
+      "loop": true,
+      "eye_events": [
+        {
+          "time": 0.0,
+          "eyes": "normal"
+        }
+      ],
+      "eye_state_source": "matching animation name"
+    }
+  ],
+  "flat_materials": [
+    "Drawn black ink",
+    "Drawn white highlight",
+    "Eyes | blank hurt artwork",
+    "Eyes | original normal artwork",
+    "Painted purple shadow"
+  ],
+  "normal_eye_prefix": "Eyes_Normal",
+  "hurt_eye_prefix": "Eyes_Hurt"
+}

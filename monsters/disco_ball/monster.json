@@ -1,0 +1,51 @@
+{
+  "id": "disco_ball",
+  "display_name": "Disco Ball Monster",
+  "default_animation": "idle",
+  "animations": [
+    {
+      "name": "hurt",
+      "source_frames": [
+        0,
+        8
+      ],
+      "fps": 24.0,
+      "duration_seconds": 0.3333333333333333,
+      "loop": true,
+      "eye_events": [
+        {
+          "time": 0.0,
+          "eyes": "hurt"
+        }
+      ],
+      "eye_state_source": "matching animation name"
+    },
+    {
+      "name": "idle",
+      "source_frames": [
+        0,
+        30
+      ],
+      "fps": 24.0,
+      "duration_seconds": 1.25,
+      "loop": true,
+      "eye_events": [
+        {
+          "time": 0.0,
+          "eyes": "normal"
+        }
+      ],
+      "eye_state_source": "matching animation name"
+    }
+  ],
+  "flat_materials": [
+    "Disco | original nose artwork",
+    "Drawn black ink",
+    "Drawn white highlight",
+    "Eyes | blank hurt artwork",
+    "Eyes | original normal artwork",
+    "Painted purple shadow"
+  ],
+  "normal_eye_prefix": "Eyes_Normal",
+  "hurt_eye_prefix": "Eyes_Hurt"
+}
