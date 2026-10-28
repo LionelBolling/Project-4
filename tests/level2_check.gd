@@ -14,14 +14,14 @@ func run() -> void:
 	root.add_child(level)
 	await physics_frame
 	check(level.name == "Level2", "Standalone Level2 scene")
-	check(level.changing_walls.size() == 72, "Seventy-two changing walls")
-	check(level.get_node("Level2Parkour").get_child_count() == 192, "Expanded stairs, landing platforms and hurdles")
+	check(level.changing_walls.size() == 18, "Eighteen changing walls")
+	check(level.get_node("Level2Parkour").get_child_count() == 48, "Shortened stairs, landing platforms and hurdles")
 	var course = level.get_node("StoryCourse")
-	check(course.surfaces.size() == 101, "Floating platforms cover expanded course")
+	check(course.surfaces.size() == 26, "Floating platforms cover shortened course")
 	check(is_equal_approx(course.surfaces[0].body.get_node("CollisionShape3D").shape.size.x, 14.88), "Course is wider")
-	check(is_equal_approx(level._finish_position(), -992), "Finish moved to one thousand meters")
+	check(is_equal_approx(level._finish_position(), -242), "Finish is two hundred fifty meters from start")
 	check(level.rival.finish_z == level._finish_position(), "Rival uses expanded finish")
-	check(course.first_encounter_delay == 1.5 and course.encounter_interval == 2.0, "More frequent QTE timing")
+	check(course.first_encounter_delay == 6.0 and course.encounter_interval == 8.0, "QTEs allow a six-second opening and eight-second breaks")
 	level._start_race()
 	level.player.position.z = -195
 	level.player.velocity.z = -8
@@ -43,7 +43,7 @@ func run() -> void:
 	course._process(0.01)
 	check(course.qte_remaining > 0, "Shadow QTE starts")
 	course.resolve(true)
-	check(course.next_encounter == 2 and level.player.story_boost_time == 5, "QTE reward and recurrence")
+	check(course.next_encounter == 8 and level.player.story_boost_time == 5, "QTE reward and slower recurrence")
 	level._finish_race(true)
 	check(level.race_state == "FINISHED", "Standalone win has restart flow")
 	level._restart_race()

@@ -2,13 +2,15 @@
 extends "res://scripts/runner_race_scene.gd"
 ## Campaign parkour race, also playable directly with F6.
 const Course = preload("res://scripts/story_course.gd")
-const LENGTH_MULTIPLIER := 5.0
+const LENGTH_MULTIPLIER := 1.25
 const WIDTH_MULTIPLIER := 1.6
-const PARKOUR_SECTIONS := 24
-const CHANGING_WALL_COUNT := 72
+const PARKOUR_SECTIONS := 6
+const CHANGING_WALL_COUNT := 18
 var changing_walls: Array[Dictionary] = []
 var wall_rng := RandomNumberGenerator.new()
 var wall_clock := 0.0
+var rival_stall_time := 0.0
+var rival_progress_z := START_Z
 
 func _init() -> void:
 	set_meta("story_round", 2)
@@ -62,12 +64,14 @@ func _ready() -> void:
 	if Engine.is_editor_hint(): return
 	var course := Course.new()
 	course.name = "StoryCourse"
-	course.first_encounter_delay = 1.5
-	course.encounter_interval = 2.0
-	course.segment_count = 101
+	course.first_encounter_delay = 6.0
+	course.encounter_interval = 8.0
+	course.segment_count = 26
 	course.course_width = 9.3 * WIDTH_MULTIPLIER
 	add_child(course)
 	rival.run_speed = 7.8
+	# The middle lane clears the stairs, staggered hurdles and moving side walls.
+	rival.story_lane_sway = 0.0
 	rival.finish_z = _finish_position()
 	player.camera.far = 1600
 	player_status_label.text = "Space jump / hold glide   Shift dive   Q E R F counter"
@@ -94,6 +98,7 @@ func _build_lighting() -> void:
 
 func _physics_process(dt: float) -> void:
 	if Engine.is_editor_hint() or race_state not in ["COUNTDOWN", "RACING"]: return
+	_update_rival_progress(dt)
 	wall_clock += dt
 	for wall in changing_walls:
 		wall.elapsed += dt
@@ -106,6 +111,26 @@ func _physics_process(dt: float) -> void:
 			wall.elapsed = 0.0
 		wall.height = lerpf(wall.start, wall.target, smoothstep(0, 1, wall.elapsed / wall.duration))
 		_set_wall_height(wall, wall.height)
+
+func _update_rival_progress(dt: float) -> void:
+	if race_state != "RACING" or not rival.race_active:
+		rival_stall_time = 0.0
+		rival_progress_z = rival.position.z
+		return
+	if rival.position.z < rival_progress_z - 0.5:
+		rival_progress_z = rival.position.z
+		rival_stall_time = 0.0
+	else:
+		rival_stall_time += dt
+	if rival_stall_time < 2.0 and rival.position.y > -3.0:
+		return
+	# Recover on the continuous rival floor without advancing down the course.
+	var recovery_z := clampf(rival.position.z, _finish_position() + 0.5, START_Z)
+	rival.reset_for_race()
+	rival.position = Vector3(0.0, 0.05, recovery_z)
+	rival.start_race()
+	rival_progress_z = recovery_z
+	rival_stall_time = 0.0
 
 func _set_wall_height(wall: Dictionary, height: float) -> void:
 	var body: StaticBody3D = wall.body
@@ -126,6 +151,8 @@ func _next_scene_path() -> String:
 
 func _restart_race() -> void:
 	super._restart_race()
+	rival_stall_time = 0.0
+	rival_progress_z = rival.position.z
 	wall_clock = 0
 	wall_rng.seed = 22026
 	for wall in changing_walls:

@@ -15,6 +15,7 @@ const BlackProjectileScript = preload("res://scripts/rival_black_projectile.gd")
 @export var gravity := 24.0
 @export var finish_z := -192.0
 @export var straight_run := false
+@export_range(0.0, 4.0, 0.1) var story_lane_sway := 2.6
 @export var rubberband_enabled := true
 @export var course_traversal_assist := false
 @export_range(6.0, 32.0, 1.0) var course_scan_side_limit := 24.0
@@ -310,7 +311,10 @@ func _physics_process(delta: float) -> void:
 					horizontal = desired_direction * steered_speed
 				else:
 					var steering_weight := clampf(acceleration * delta / maxf(current_speed, 0.01), 0.0, 1.0)
-					var steered_direction := horizontal.normalized().slerp(desired_direction, steering_weight).normalized()
+					# Steer in the ground plane; nearly parallel vectors can make
+					# slerp's rotation axis unstable when following a straight lane.
+					var heading := lerp_angle(atan2(horizontal.x, -horizontal.z), atan2(desired_direction.x, -desired_direction.z), steering_weight)
+					var steered_direction := Vector3(sin(heading), 0.0, -cos(heading))
 					horizontal = steered_direction * steered_speed
 			velocity.x = horizontal.x
 			velocity.z = horizontal.z
@@ -679,7 +683,7 @@ func _pick_race_intent() -> void:
 	if get_parent().has_meta("story_round"):
 		# A repeatable racing route; the boss controller adds its attack approach.
 		_decision_timer = 0.75
-		_target_x = sin((start_position.z - global_position.z) * 0.055) * 2.6
+		_target_x = sin((start_position.z - global_position.z) * 0.055) * story_lane_sway
 		_target_forward_speed = run_speed
 		if is_on_floor() and int(start_position.z - global_position.z) % 28 < 6:
 			velocity.y = jump_velocity

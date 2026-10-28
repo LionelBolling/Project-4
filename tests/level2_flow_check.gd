@@ -16,7 +16,7 @@ func run() -> void:
 	await process_frame
 	var level2 = current_scene
 	assert(level2.scene_file_path == "res://scenes/Level2.tscn", "Level 1 advances to Level 2")
-	assert(level2.changing_walls.size() == 72, "Original Level 2 moving walls loaded")
+	assert(level2.changing_walls.size() == 18, "Shortened Level 2 moving walls loaded")
 	assert(level2.has_node("PauseMenu"), "Level 2 has pause menu")
 	level2._finish_race(false)
 	level2.restart_timer = 0.0
