@@ -1,6 +1,9 @@
 extends Node3D
 ## Rewind campaign director. Gameplay remains in the existing race/boss scenes.
 const Props = preload("res://scripts/story_props.gd")
+## The title-screen opening hands off to the current Neon Fever levels.
+## Leave empty to play the original standalone Rewind campaign.
+@export_file("*.tscn") var next_scene: String = ""
 var stage: Node3D
 var room: Node3D
 var camera: Camera3D
@@ -200,7 +203,7 @@ func _input(event: InputEvent) -> void:
 	if key == KEY_M:
 		muted = not muted
 		AudioServer.set_bus_mute(0, muted)
-	if key == KEY_ESCAPE and phase not in ["race", "boss"]:
+	if key == KEY_ESCAPE and phase not in ["race", "boss"] and not has_node("PauseMenu"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED else Input.MOUSE_MODE_CAPTURED
 	if key == KEY_E and phase == "bedroom" and _can_touch_boombox():
 		_begin_abduction()
@@ -306,6 +309,11 @@ func _tick_abduction(dt: float) -> void:
 		if start.distance_to(end) > 0.01: strand.look_at(end)
 	fade.color.a = smoothstep(2.65, 3.15, t)
 	if t > 3.3:
+		if not next_scene.is_empty():
+			set_process(false)
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+			get_tree().change_scene_to_file(next_scene)
+			return
 		for strand in pull_strands: strand.hide()
 		bedroom_model.hide()
 		boombox.position.x = 1.4

@@ -7,7 +7,7 @@ const GOAL_LAUNCH_RANGE := 110.0
 const RACE_COUNTDOWN_SECONDS := 3.0
 const RACE_GO_LABEL_SECONDS := 0.7
 const WIN_RESULTS_SECONDS := 3.0
-const NEXT_SCENE := "res://scenes/level_3_beta.tscn"
+const NEXT_SCENE := "res://scenes/Level2.tscn"
 const MAX_PROJECTILE_HOLES := 96
 
 @onready var player: MovementTestPlayer = $Player

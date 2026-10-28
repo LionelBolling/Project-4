@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/rewind_story.gd" id="1_story"]
+[ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="2_pause"]
+
+[node name="BedroomIntro" type="Node3D"]
+script = ExtResource("1_story")
+next_scene = "res://scenes/level_0.tscn"
+
+[node name="PauseMenu" parent="." instance=ExtResource("2_pause")]

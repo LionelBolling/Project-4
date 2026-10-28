@@ -1,6 +1,6 @@
 @tool
 extends "res://scripts/runner_race_scene.gd"
-## Standalone parkour race. Open scenes/Level2.tscn and press F6.
+## Campaign parkour race, also playable directly with F6.
 const Course = preload("res://scripts/story_course.gd")
 const LENGTH_MULTIPLIER := 5.0
 const WIDTH_MULTIPLIER := 1.6
@@ -117,9 +117,12 @@ func _set_wall_height(wall: Dictionary, height: float) -> void:
 
 func _finish_race(player_won: bool) -> void:
 	super._finish_race(player_won)
-	# Standalone scene shows results and retries, rather than advancing story.
+	# Use the results delay before advancing on a win or retrying on a loss.
 	race_state = "FINISHED"
 	finish_label.text = "YOU WIN" if player_won else "TRY AGAIN"
+
+func _next_scene_path() -> String:
+	return "res://scenes/level_3_beta.tscn"
 
 func _restart_race() -> void:
 	super._restart_race()

@@ -1,6 +1,6 @@
 extends Node3D
 
-const GAME_SCENE := "res://scenes/level_0.tscn"
+const GAME_SCENE := "res://scenes/bedroom_intro.tscn"
 
 func _ready() -> void:
 	_build_title_ui()

@@ -74,9 +74,12 @@ func _process(delta: float) -> void:
 		restart_timer -= delta
 		if restart_timer <= 0.0:
 			if player_won_race:
-				get_tree().change_scene_to_file(NEXT_SCENE)
+				get_tree().change_scene_to_file(_next_scene_path())
 			else:
 				_restart_race()
+
+func _next_scene_path() -> String:
+	return NEXT_SCENE
 
 func _start_race() -> void:
 	race_state = "RACING"
