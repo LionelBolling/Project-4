@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scripts/monsters_test_scene.gd" id="1_scene"]
 [ext_resource type="Script" path="res://scripts/movement_test_player.gd" id="2_player"]
@@ -28,14 +28,40 @@ emission = Color(1, 0.04, 0.46, 1)
 emission_energy_multiplier = 1.2
 
 [sub_resource type="BoxMesh" id="RoadMesh"]
-size = Vector3(16, 0.35, 300)
+size = Vector3(16, 0.35, 352)
 material = SubResource("RoadMaterial")
 
 [sub_resource type="BoxShape3D" id="RoadShape"]
-size = Vector3(16, 0.35, 300)
+size = Vector3(16, 0.35, 352)
+
+[sub_resource type="StandardMaterial3D" id="WallMaterial"]
+albedo_color = Color(0.13, 0.095, 0.22, 1)
+metallic = 0.22
+roughness = 0.48
+
+[sub_resource type="StandardMaterial3D" id="BlueWallNeon"]
+shading_mode = 0
+albedo_color = Color(0.08, 0.89, 0.96, 1)
+emission_enabled = true
+emission = Color(0.06, 0.8, 1, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="StandardMaterial3D" id="PinkWallNeon"]
+shading_mode = 0
+albedo_color = Color(0.95, 0.08, 0.53, 1)
+emission_enabled = true
+emission = Color(1, 0.04, 0.46, 1)
+emission_energy_multiplier = 1.2
+
+[sub_resource type="BoxMesh" id="BackWallMesh"]
+material = SubResource("WallMaterial")
+size = Vector3(0.8, 6.5, 18)
+
+[sub_resource type="BoxShape3D" id="BackWallShape"]
+size = Vector3(0.8, 6.5, 18)
 
 [sub_resource type="BoxMesh" id="NeonStrip"]
-size = Vector3(0.12, 0.035, 298)
+size = Vector3(0.12, 0.035, 350)
 
 [sub_resource type="CapsuleShape3D" id="PlayerCapsule"]
 radius = 0.34
@@ -57,7 +83,7 @@ height = 2.3
 script = ExtResource("1_scene")
 
 [node name="Corridor" type="StaticBody3D" parent="."]
-position = Vector3(0, -0.175, -135)
+position = Vector3(0, -0.175, -161)
 collision_layer = 1
 collision_mask = 1
 
@@ -105,7 +131,8 @@ fov = 78.0
 current = true
 
 [node name="DiscoBall" type="CharacterBody3D" parent="."]
-position = Vector3(-1.6, 4.5, -34)
+position = Vector3(-1.6, 0.05, -34)
+scale = Vector3(1.8, 1.8, 1.8)
 collision_layer = 2
 collision_mask = 1
 script = ExtResource("4_target")
@@ -122,6 +149,7 @@ shape = SubResource("DiscoCapsule")
 
 [node name="Speaker" type="CharacterBody3D" parent="."]
 position = Vector3(1.8, 0.05, -100)
+scale = Vector3(1.8, 1.8, 1.8)
 collision_layer = 2
 collision_mask = 1
 script = ExtResource("4_target")
@@ -135,7 +163,8 @@ shape = SubResource("SpeakerCapsule")
 [node name="Visual" parent="Speaker" instance=ExtResource("6_speaker")]
 
 [node name="Microphone" type="CharacterBody3D" parent="."]
-position = Vector3(-1.5, 2.15, -166)
+position = Vector3(-1.5, 0.05, -166)
+scale = Vector3(1.8, 1.8, 1.8)
 collision_layer = 2
 collision_mask = 1
 script = ExtResource("4_target")
@@ -149,3 +178,163 @@ position = Vector3(0, 1.15, 0)
 shape = SubResource("MicrophoneCapsule")
 
 [node name="Visual" parent="Microphone" instance=ExtResource("7_microphone")]
+
+[node name="DiscoBall2" type="CharacterBody3D" parent="."]
+position = Vector3(-1.5, 0.05, -202)
+scale = Vector3(1.8, 1.8, 1.8)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("4_target")
+required_key = "Q"
+hover_height = 0.55
+hover_speed = 1.25
+title = "DISCO BALL 2"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DiscoBall2"]
+position = Vector3(0, 1.3, 0)
+shape = SubResource("DiscoCapsule")
+
+[node name="Visual" parent="DiscoBall2" instance=ExtResource("5_disco")]
+
+[node name="Speaker2" type="CharacterBody3D" parent="."]
+position = Vector3(1.5, 0.05, -216)
+scale = Vector3(1.8, 1.8, 1.8)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("4_target")
+required_key = "E"
+title = "SPEAKER 2"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Speaker2"]
+position = Vector3(0, 1, 0)
+shape = SubResource("SpeakerCapsule")
+
+[node name="Visual" parent="Speaker2" instance=ExtResource("6_speaker")]
+
+[node name="Microphone2" type="CharacterBody3D" parent="."]
+position = Vector3(-1.5, 0.05, -230)
+scale = Vector3(1.8, 1.8, 1.8)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("4_target")
+required_key = "R"
+hover_height = 0.28
+hover_speed = 1.6
+title = "MICROPHONE 2"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Microphone2"]
+position = Vector3(0, 1.15, 0)
+shape = SubResource("MicrophoneCapsule")
+
+[node name="Visual" parent="Microphone2" instance=ExtResource("7_microphone")]
+
+[node name="BackWallLeftA" type="StaticBody3D" parent="."]
+position = Vector3(-7.5, 3.25, -268)
+
+[node name="WallMesh" type="MeshInstance3D" parent="BackWallLeftA"]
+mesh = SubResource("BackWallMesh")
+material_override = SubResource("BlueWallNeon")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BackWallLeftA"]
+shape = SubResource("BackWallShape")
+
+[node name="BackWallRightA" type="StaticBody3D" parent="."]
+position = Vector3(7.5, 3.25, -268)
+
+[node name="WallMesh" type="MeshInstance3D" parent="BackWallRightA"]
+mesh = SubResource("BackWallMesh")
+material_override = SubResource("PinkWallNeon")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BackWallRightA"]
+shape = SubResource("BackWallShape")
+
+[node name="BackWallLeftB" type="StaticBody3D" parent="."]
+position = Vector3(-7.5, 3.25, -298)
+
+[node name="WallMesh" type="MeshInstance3D" parent="BackWallLeftB"]
+mesh = SubResource("BackWallMesh")
+material_override = SubResource("BlueWallNeon")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BackWallLeftB"]
+shape = SubResource("BackWallShape")
+
+[node name="BackWallRightB" type="StaticBody3D" parent="."]
+position = Vector3(7.5, 3.25, -298)
+
+[node name="WallMesh" type="MeshInstance3D" parent="BackWallRightB"]
+mesh = SubResource("BackWallMesh")
+material_override = SubResource("PinkWallNeon")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BackWallRightB"]
+shape = SubResource("BackWallShape")
+
+[node name="BackWallLeftC" type="StaticBody3D" parent="."]
+position = Vector3(-7.5, 3.25, -328)
+
+[node name="WallMesh" type="MeshInstance3D" parent="BackWallLeftC"]
+mesh = SubResource("BackWallMesh")
+material_override = SubResource("BlueWallNeon")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BackWallLeftC"]
+shape = SubResource("BackWallShape")
+
+[node name="BackWallRightC" type="StaticBody3D" parent="."]
+position = Vector3(7.5, 3.25, -328)
+
+[node name="WallMesh" type="MeshInstance3D" parent="BackWallRightC"]
+mesh = SubResource("BackWallMesh")
+material_override = SubResource("PinkWallNeon")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BackWallRightC"]
+shape = SubResource("BackWallShape")
+
+[node name="DiscoBall3" type="CharacterBody3D" parent="."]
+position = Vector3(0, 0.05, -344)
+scale = Vector3(1.8, 1.8, 1.8)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("4_target")
+required_key = "Q"
+hover_height = 0.55
+hover_speed = 1.25
+title = "DISCO BALL 3"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DiscoBall3"]
+position = Vector3(0, 1.3, 0)
+shape = SubResource("DiscoCapsule")
+
+[node name="Visual" parent="DiscoBall3" instance=ExtResource("5_disco")]
+
+[node name="DiscoBall4" type="CharacterBody3D" parent="."]
+position = Vector3(0, 0.05, -362)
+scale = Vector3(1.8, 1.8, 1.8)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("4_target")
+required_key = "Q"
+hover_height = 0.55
+hover_speed = 1.25
+title = "DISCO BALL 4"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DiscoBall4"]
+position = Vector3(0, 1.3, 0)
+shape = SubResource("DiscoCapsule")
+
+[node name="Visual" parent="DiscoBall4" instance=ExtResource("5_disco")]
+
+[node name="DiscoBall5" type="CharacterBody3D" parent="."]
+position = Vector3(0, 0.05, -380)
+scale = Vector3(1.8, 1.8, 1.8)
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("4_target")
+required_key = "Q"
+hover_height = 0.55
+hover_speed = 1.25
+title = "DISCO BALL 5"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DiscoBall5"]
+position = Vector3(0, 1.3, 0)
+shape = SubResource("DiscoCapsule")
+
+[node name="Visual" parent="DiscoBall5" instance=ExtResource("5_disco")]
