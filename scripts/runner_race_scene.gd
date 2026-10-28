@@ -1,6 +1,8 @@
 @tool
 extends Node3D
 
+signal story_finished
+
 const TRACK_LENGTH := 210.0
 const START_Z := 8.0
 const FINISH_Z := -192.0
@@ -63,9 +65,9 @@ func _process(delta: float) -> void:
 		_update_race_hud()
 		if rival.touches_player_hazard(player.global_position + Vector3.UP * 0.9):
 			player.play_hurt_animation()
-		if player.global_position.z <= FINISH_Z and player.velocity.z < 0.0:
+		if player.global_position.z <= _finish_position() and player.velocity.z < 0.0:
 			_finish_race(true)
-		elif rival.global_position.z <= FINISH_Z:
+		elif rival.global_position.z <= _finish_position():
 			_finish_race(false)
 	elif race_state == "FINISHED":
 		_update_race_hud()
@@ -99,6 +101,11 @@ func _finish_race(player_won: bool) -> void:
 	finish_label.text = "WIN" if player_won else "LOSE"
 	finish_label.visible = true
 	_style_race_announcement(68, Color("ff5be5") if player_won else Color("62e8ff"), Color("ff42cf") if player_won else Color("159bff"))
+	if has_meta("story_round"):
+		finish_label.text = ""
+		if player_won:
+			race_state = "STORY_COMPLETE"
+			story_finished.emit()
 
 func _restart_race() -> void:
 	_clear_environment_holes()
@@ -111,6 +118,8 @@ func _restart_race() -> void:
 	finish_label.text = "3"
 	finish_label.visible = true
 	_style_race_announcement(82, Color("fff07d"), Color("ff42cf"))
+	if has_node("StoryCourse"):
+		$StoryCourse.reset()
 
 func _on_rival_projectile_surface_impact(hit_position: Vector3, surface_normal: Vector3, surface: Object, projectile_radius: float) -> void:
 	projectile_hole_count += 1
@@ -237,8 +246,11 @@ func _clear_environment_holes() -> void:
 	surface_replacements.clear()
 	projectile_hole_count = 0
 
+func _finish_position() -> float:
+	return FINISH_Z
+
 func _update_race_hud() -> void:
-	var total_distance := START_Z - FINISH_Z
+	var total_distance := START_Z - _finish_position()
 	var player_progress := clampf((START_Z - player.global_position.z) / total_distance, 0.0, 1.0)
 	var rival_progress := clampf((START_Z - rival.global_position.z) / total_distance, 0.0, 1.0)
 	player_progress_fill.size.x = PROGRESS_TRACK_WIDTH * player_progress
