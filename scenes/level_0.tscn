@@ -1,0 +1,62 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/runner_race_scene.gd" id="1_race"]
+[ext_resource type="Script" path="res://scripts/movement_test_player.gd" id="2_player"]
+[ext_resource type="PackedScene" path="res://runner/runner.tscn" id="3_player_visual"]
+[ext_resource type="Script" path="res://scripts/race_opponent.gd" id="4_rival"]
+[ext_resource type="PackedScene" path="res://enemy_runner/enemy_runner.tscn" id="5_rival_visual"]
+[ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="6_pause_menu"]
+
+[sub_resource type="CapsuleShape3D" id="PlayerCapsule"]
+radius = 0.34
+height = 1.8
+
+[sub_resource type="CapsuleShape3D" id="RivalCapsule"]
+radius = 0.34
+height = 1.8
+
+[node name="Level0" type="Node3D"]
+script = ExtResource("1_race")
+
+[node name="Player" type="CharacterBody3D" parent="."]
+collision_layer = 4
+collision_mask = 1
+position = Vector3(-1.15, 0.05, 8)
+floor_snap_length = 0.35
+floor_max_angle = 0.837758
+script = ExtResource("2_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("PlayerCapsule")
+
+[node name="Runner" parent="Player" instance=ExtResource("3_player_visual")]
+
+[node name="CameraPivot" type="Node3D" parent="Player"]
+position = Vector3(0, 1.85, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="Player/CameraPivot"]
+spring_length = 5.8
+margin = 0.4
+collision_mask = 1
+
+[node name="Camera3D" type="Camera3D" parent="Player/CameraPivot/SpringArm3D"]
+position = Vector3(0, 0, 0.15)
+fov = 78.0
+current = true
+
+[node name="Rival" type="CharacterBody3D" parent="."]
+collision_layer = 2
+collision_mask = 1
+position = Vector3(1.15, 0.05, 8)
+floor_snap_length = 0.35
+floor_max_angle = 0.837758
+script = ExtResource("4_rival")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Rival"]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("RivalCapsule")
+
+[node name="EnemyRunner" parent="Rival" instance=ExtResource("5_rival_visual")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("6_pause_menu")]

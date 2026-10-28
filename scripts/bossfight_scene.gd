@@ -14,6 +14,7 @@ const APPROACH_DISTANCE := 8.0
 const MIN_SHADOW_LEAD := 12.0
 const MAX_SHADOW_LEAD := 20.0
 const RESULTS_PAUSE := 3.0
+const NEXT_SCENE := "res://scenes/title_screen.tscn"
 
 @onready var player: MovementTestPlayer = $Player
 @onready var rival: RaceOpponent = $Rival
@@ -46,6 +47,7 @@ var _camera_tracks_midpoint := false
 var _camera_cut := false
 var _hud_phase: Label
 var _hud_progress: Label
+var _hud_health: ProgressBar
 var _hud_action: Label
 var _hud_hint: Label
 
@@ -116,6 +118,10 @@ func _process(delta: float) -> void:
 			restart_timer -= delta
 			if restart_timer <= 0.0:
 				_recover_after_failure()
+		"WIN":
+			restart_timer -= delta
+			if restart_timer <= 0.0:
+				get_tree().change_scene_to_file(NEXT_SCENE)
 	_update_cut_camera(delta)
 	_update_hud()
 
@@ -280,6 +286,7 @@ func _finish_enemy_launch() -> void:
 	rival.visual.rotation = Vector3(0.0, PI, 0.0)
 	if successful_hits >= 4:
 		phase = "WIN"
+		restart_timer = RESULTS_PAUSE
 		_hud_action.text = "YOU WIN!"
 		player.set_physics_process(false)
 		rival.set_physics_process(false)
@@ -409,10 +416,22 @@ func _build_hud() -> void:
 	stack.add_child(title)
 	_hud_phase = Label.new()
 	_hud_phase.add_theme_color_override("font_color", Color("ffe385"))
+	_hud_phase.visible = false
 	stack.add_child(_hud_phase)
 	_hud_progress = Label.new()
+	_hud_progress.text = "SHADOW HEALTH"
+	_hud_progress.add_theme_font_size_override("font_size", 15)
 	_hud_progress.add_theme_color_override("font_color", Color("ff83cb"))
 	stack.add_child(_hud_progress)
+	_hud_health = ProgressBar.new()
+	_hud_health.custom_minimum_size = Vector2(270.0, 24.0)
+	_hud_health.min_value = 0.0
+	_hud_health.max_value = 4.0
+	_hud_health.value = 4.0
+	_hud_health.show_percentage = false
+	_hud_health.add_theme_stylebox_override("background", _health_bar_style(Color(0.13, 0.08, 0.19, 1.0)))
+	_hud_health.add_theme_stylebox_override("fill", _health_bar_style(Color("ff3d9f")))
+	stack.add_child(_hud_health)
 	_hud_hint = Label.new()
 	_hud_hint.text = "WASD run   Mouse camera   Space jump   Shift glide   Ctrl dive"
 	_hud_hint.add_theme_font_size_override("font_size", 14)
@@ -423,21 +442,40 @@ func _build_hud() -> void:
 	_hud_action.size = Vector2(520.0, 120.0)
 	_hud_action.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hud_action.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_hud_action.add_theme_font_size_override("font_size", 50)
+	_hud_action.add_theme_font_size_override("font_size", 54)
 	_hud_action.add_theme_color_override("font_color", Color("ffe385"))
+	_hud_action.add_theme_color_override("font_outline_color", Color("ff42cf"))
+	_hud_action.add_theme_constant_override("outline_size", 6)
 	layer.add_child(_hud_action)
 
 func _update_hud() -> void:
 	if _hud_phase == null:
 		return
-	match phase:
-		"COUNTDOWN": _hud_phase.text = "CHASE BEGINS  %.1f" % countdown_timer
-		"CHASE": _hud_phase.text = "CHASE  %.1f s" % maxf(chase_timer, 0.0)
-		"WAIT_APPROACH": _hud_phase.text = "SHADOW WAITS  %.1f s" % maxf(wait_timer, 0.0)
-		"QTE": _hud_phase.text = "QUICK TIME  %.1f s" % maxf(qte_timer, 0.0)
-		"WIN": _hud_phase.text = "THE SHADOW IS DEFEATED"
-		_: _hud_phase.text = phase.replace("_", " ")
-	_hud_progress.text = "SHADOW HITS  %d / 4" % successful_hits
+	_hud_health.value = maxf(0.0, 4.0 - float(successful_hits))
+	_hud_phase.text = ""
+	if phase == "QTE":
+		_hud_action.visible = true
+		_hud_action.text = "PRESS  [ %s ]" % qte_key
+	elif phase == "WIN":
+		_hud_action.visible = true
+		_hud_action.text = "WIN!"
+		_hud_action.add_theme_color_override("font_color", Color("7ffff0"))
+		_hud_action.add_theme_color_override("font_outline_color", Color("168cff"))
+	elif phase == "COUNTDOWN":
+		_hud_action.visible = true
+		_hud_action.text = str(maxi(1, ceili(countdown_timer)))
+	else:
+		_hud_action.visible = false
+
+func _health_bar_style(fill_color: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = fill_color
+	style.set_corner_radius_all(8)
+	style.content_margin_left = 2.0
+	style.content_margin_right = 2.0
+	style.content_margin_top = 2.0
+	style.content_margin_bottom = 2.0
+	return style
 func _panel_style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.055, 0.045, 0.12, 0.9)

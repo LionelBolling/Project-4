@@ -7,16 +7,25 @@ const TRACK_LENGTH := 210.0
 const START_Z := 8.0
 const FINISH_Z := -192.0
 const MAX_PROJECTILE_HOLES := 96
+const RACE_GO_LABEL_SECONDS := 0.7
+const PROGRESS_TRACK_X := 82.0
+const PROGRESS_TRACK_WIDTH := 278.0
+const NEXT_SCENE := "res://scenes/level_1.tscn"
 
 @onready var player: MovementTestPlayer = $Player
 @onready var rival: RaceOpponent = $Rival
 
 var race_state := "COUNTDOWN"
-var countdown_time := 3.2
+var countdown_time := 3.0
 var finish_label: Label
-var progress_label: Label
+var player_progress_fill: ColorRect
+var rival_progress_fill: ColorRect
+var player_progress_face: Panel
+var rival_progress_face: Panel
 var player_status_label: Label
+var go_label_timer := 0.0
 var restart_timer := 0.0
+var player_won_race := false
 var projectile_hole_count := 0
 var surface_replacements: Dictionary = {}
 var hole_visuals: Array[Node3D] = []
@@ -44,10 +53,15 @@ func _process(delta: float) -> void:
 	if race_state == "COUNTDOWN":
 		countdown_time -= delta
 		if countdown_time > 0.0:
-			finish_label.text = str(ceili(countdown_time))
+			finish_label.text = str(maxi(1, ceili(countdown_time)))
+			_style_race_announcement(82, Color("fff07d"), Color("ff42cf"))
 		else:
 			_start_race()
 	elif race_state == "RACING":
+		if go_label_timer > 0.0:
+			go_label_timer = maxf(0.0, go_label_timer - delta)
+			if go_label_timer <= 0.0:
+				finish_label.visible = false
 		_update_race_hud()
 		if rival.touches_player_hazard(player.global_position + Vector3.UP * 0.9):
 			player.play_hurt_animation()
@@ -59,11 +73,17 @@ func _process(delta: float) -> void:
 		_update_race_hud()
 		restart_timer -= delta
 		if restart_timer <= 0.0:
-			_restart_race()
+			if player_won_race:
+				get_tree().change_scene_to_file(NEXT_SCENE)
+			else:
+				_restart_race()
 
 func _start_race() -> void:
 	race_state = "RACING"
-	finish_label.text = "GO!"
+	finish_label.text = "Start!"
+	finish_label.visible = true
+	go_label_timer = RACE_GO_LABEL_SECONDS
+	_style_race_announcement(76, Color("7ffff0"), Color("20aaff"))
 	player.jump_buffer = 0.0
 	player.set_physics_process(true)
 	rival.start_race()
@@ -71,13 +91,16 @@ func _start_race() -> void:
 
 func _finish_race(player_won: bool) -> void:
 	race_state = "FINISHED"
+	player_won_race = player_won
 	restart_timer = RESULTS_PAUSE
 	_clear_rival_projectiles()
 	player.set_physics_process(false)
 	rival.stop_race()
 	rival.set_physics_process(false)
 	player.call("_set_animation", "Idle")
-	finish_label.text = "YOU WIN!" if player_won else "RIVAL WINS"
+	finish_label.text = "WIN" if player_won else "LOSE"
+	finish_label.visible = true
+	_style_race_announcement(68, Color("ff5be5") if player_won else Color("62e8ff"), Color("ff42cf") if player_won else Color("159bff"))
 	if has_meta("story_round"):
 		finish_label.text = ""
 		if player_won:
@@ -91,8 +114,10 @@ func _restart_race() -> void:
 	player.set_physics_process(false)
 	rival.set_physics_process(false)
 	race_state = "COUNTDOWN"
-	countdown_time = 3.2
+	countdown_time = 3.0
 	finish_label.text = "3"
+	finish_label.visible = true
+	_style_race_announcement(82, Color("fff07d"), Color("ff42cf"))
 	if has_node("StoryCourse"):
 		$StoryCourse.reset()
 
@@ -228,7 +253,10 @@ func _update_race_hud() -> void:
 	var total_distance := START_Z - _finish_position()
 	var player_progress := clampf((START_Z - player.global_position.z) / total_distance, 0.0, 1.0)
 	var rival_progress := clampf((START_Z - rival.global_position.z) / total_distance, 0.0, 1.0)
-	progress_label.text = "YOU  %3.0f%%     RIVAL  %3.0f%%" % [player_progress * 100.0, rival_progress * 100.0]
+	player_progress_fill.size.x = PROGRESS_TRACK_WIDTH * player_progress
+	rival_progress_fill.size.x = PROGRESS_TRACK_WIDTH * rival_progress
+	player_progress_face.position.x = PROGRESS_TRACK_X + PROGRESS_TRACK_WIDTH * player_progress - 15.0
+	rival_progress_face.position.x = PROGRESS_TRACK_X + PROGRESS_TRACK_WIDTH * rival_progress - 15.0
 	player_status_label.text = "STATE  %s     SPEED  %.1f" % [player.state, Vector2(player.velocity.x, player.velocity.z).length()]
 
 func _build_track() -> void:
@@ -352,24 +380,29 @@ func _build_lighting() -> void:
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
+	layer.name = "RaceHUD"
 	add_child(layer)
 	var panel := PanelContainer.new()
-	panel.position = Vector2(18.0, 16.0)
+	panel.position = Vector2(20.0, 20.0)
+	panel.custom_minimum_size = Vector2(430.0, 0.0)
 	panel.add_theme_stylebox_override("panel", _panel_style())
 	layer.add_child(panel)
 	var stack := VBoxContainer.new()
-	stack.add_theme_constant_override("separation", 4)
+	stack.add_theme_constant_override("separation", 3)
 	panel.add_child(stack)
 	var title := Label.new()
-	title.text = "NEON RACE"
-	title.add_theme_font_size_override("font_size", 20)
-	title.add_theme_color_override("font_color", Color("62f4e1"))
+	title.text = "RACE TO THE FINISH"
+	title.add_theme_font_size_override("font_size", 16)
+	title.add_theme_color_override("font_color", Color("8dfaff"))
+	title.add_theme_color_override("font_outline_color", Color("123a75"))
+	title.add_theme_constant_override("outline_size", 2)
 	stack.add_child(title)
-	progress_label = Label.new()
-	progress_label.text = "YOU   0%     RIVAL   0%"
-	progress_label.add_theme_font_size_override("font_size", 16)
-	progress_label.add_theme_color_override("font_color", Color("ffe385"))
-	stack.add_child(progress_label)
+	var player_lane := _create_progress_lane(stack, "YOU", Color("ff43cf"), "res://runner/runner.tscn")
+	player_progress_fill = player_lane.get("fill") as ColorRect
+	player_progress_face = player_lane.get("face") as Panel
+	var rival_lane := _create_progress_lane(stack, "RIVAL", Color("21c8ff"), "res://enemy_runner/enemy_runner.tscn")
+	rival_progress_fill = rival_lane.get("fill") as ColorRect
+	rival_progress_face = rival_lane.get("face") as Panel
 	player_status_label = Label.new()
 	player_status_label.text = "STATE  IDLE     SPEED  0.0"
 	player_status_label.add_theme_color_override("font_color", Color("ff83cb"))
@@ -380,14 +413,118 @@ func _build_hud() -> void:
 	stack.add_child(controls)
 	finish_label = Label.new()
 	finish_label.text = "3"
-	finish_label.set_anchors_preset(Control.PRESET_CENTER)
-	finish_label.position = Vector2(-100.0, -90.0)
-	finish_label.size = Vector2(200.0, 100.0)
+	finish_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	finish_label.position = Vector2(-360.0, 78.0)
+	finish_label.size = Vector2(720.0, 96.0)
 	finish_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	finish_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	finish_label.add_theme_font_size_override("font_size", 72)
-	finish_label.add_theme_color_override("font_color", Color("ffe385"))
+	_style_race_announcement(82, Color("fff07d"), Color("ff42cf"))
 	layer.add_child(finish_label)
+	_update_race_hud()
+
+func _create_progress_lane(parent: Control, lane_name: String, tint: Color, scene_path: String) -> Dictionary:
+	var row := Control.new()
+	row.custom_minimum_size = Vector2(430.0, 34.0)
+	row.size = Vector2(430.0, 34.0)
+	parent.add_child(row)
+	var lane_label := Label.new()
+	lane_label.position = Vector2(2.0, 5.0)
+	lane_label.size = Vector2(68.0, 23.0)
+	lane_label.text = lane_name
+	lane_label.add_theme_font_size_override("font_size", 13)
+	lane_label.add_theme_color_override("font_color", tint)
+	lane_label.add_theme_color_override("font_outline_color", Color(0.015, 0.015, 0.04, 1.0))
+	lane_label.add_theme_constant_override("outline_size", 2)
+	row.add_child(lane_label)
+	var track := ColorRect.new()
+	track.position = Vector2(PROGRESS_TRACK_X, 13.0)
+	track.size = Vector2(PROGRESS_TRACK_WIDTH, 7.0)
+	track.color = Color(0.18, 0.16, 0.27, 0.95)
+	row.add_child(track)
+	var fill := ColorRect.new()
+	fill.size = Vector2(0.0, 7.0)
+	fill.color = tint
+	track.add_child(fill)
+	var marker := Panel.new()
+	marker.position = Vector2(PROGRESS_TRACK_X - 15.0, 1.0)
+	marker.size = Vector2(30.0, 30.0)
+	marker.clip_contents = true
+	var marker_style := StyleBoxFlat.new()
+	marker_style.bg_color = Color(0.035, 0.025, 0.09, 1.0)
+	marker_style.border_color = tint
+	marker_style.set_border_width_all(2)
+	marker_style.set_corner_radius_all(15)
+	marker.add_theme_stylebox_override("panel", marker_style)
+	row.add_child(marker)
+	var face := TextureRect.new()
+	face.position = Vector2(1.0, 1.0)
+	face.size = Vector2(28.0, 28.0)
+	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	face.texture = _create_character_face_texture(scene_path)
+	marker.add_child(face)
+	var finish := Label.new()
+	finish.position = Vector2(PROGRESS_TRACK_X + PROGRESS_TRACK_WIDTH + 5.0, 5.0)
+	finish.size = Vector2(52.0, 22.0)
+	finish.text = "FINISH"
+	finish.add_theme_font_size_override("font_size", 10)
+	finish.add_theme_color_override("font_color", Color("ffe88c"))
+	row.add_child(finish)
+	return {"fill": fill, "face": marker}
+
+func _create_character_face_texture(scene_path: String) -> Texture2D:
+	var packed := load(scene_path) as PackedScene
+	if packed == null:
+		return null
+	var viewport := SubViewport.new()
+	viewport.size = Vector2i(96, 96)
+	viewport.transparent_bg = true
+	viewport.own_world_3d = true
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	var portrait_root := Node3D.new()
+	viewport.add_child(portrait_root)
+	var portrait := packed.instantiate() as Node3D
+	if portrait == null:
+		viewport.queue_free()
+		return null
+	portrait_root.add_child(portrait)
+	var camera := Camera3D.new()
+	camera.position = Vector3(0.0, 1.52, 1.65)
+	camera.fov = 34.0
+	portrait_root.add_child(camera)
+	camera.current = true
+	var light := DirectionalLight3D.new()
+	light.rotation_degrees = Vector3(-15.0, 25.0, 0.0)
+	light.light_energy = 1.8
+	portrait_root.add_child(light)
+	var world := WorldEnvironment.new()
+	var environment := Environment.new()
+	environment.background_mode = Environment.BG_SKY
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.ambient_light_color = Color(0.72, 0.72, 0.88)
+	environment.ambient_light_energy = 0.8
+	world.environment = environment
+	portrait_root.add_child(world)
+	layer_add_portrait_viewport(viewport)
+	return viewport.get_texture()
+
+func layer_add_portrait_viewport(viewport: SubViewport) -> void:
+	var layer := get_node_or_null("RaceHUD") as CanvasLayer
+	if layer == null:
+		layer = find_child("RaceHUD", false, false) as CanvasLayer
+	if layer != null:
+		layer.add_child(viewport)
+
+func _style_race_announcement(font_size: int, font_color: Color, outline_color: Color) -> void:
+	if finish_label == null:
+		return
+	finish_label.add_theme_font_size_override("font_size", font_size)
+	finish_label.add_theme_color_override("font_color", font_color)
+	finish_label.add_theme_color_override("font_outline_color", outline_color)
+	finish_label.add_theme_constant_override("outline_size", 7)
+	finish_label.add_theme_color_override("font_shadow_color", Color(0.02, 0.78, 1.0, 0.9))
+	finish_label.add_theme_constant_override("shadow_offset_x", 0)
+	finish_label.add_theme_constant_override("shadow_offset_y", 4)
 
 func _panel_style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()

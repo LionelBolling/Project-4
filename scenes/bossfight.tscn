@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/bossfight_scene.gd" id="1_race"]
 [ext_resource type="Script" path="res://scripts/movement_test_player.gd" id="2_player"]
 [ext_resource type="PackedScene" path="res://runner/runner.tscn" id="3_player_visual"]
 [ext_resource type="Script" path="res://scripts/race_opponent.gd" id="4_rival"]
 [ext_resource type="PackedScene" path="res://enemy_runner/enemy_runner.tscn" id="5_rival_visual"]
+[ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="6_pause_menu"]
 
 [sub_resource type="CapsuleShape3D" id="PlayerCapsule"]
 radius = 0.34
@@ -57,3 +58,5 @@ position = Vector3(0, 0.9, 0)
 shape = SubResource("RivalCapsule")
 
 [node name="EnemyRunner" parent="Rival" instance=ExtResource("5_rival_visual")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("6_pause_menu")]

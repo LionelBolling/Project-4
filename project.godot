@@ -10,8 +10,8 @@ config_version=5
 
 [application]
 
-config/name="Rewind"
-run/main_scene="res://scenes/rewind.tscn"
+config/name="Neon Fever"
+run/main_scene="res://scenes/title_screen.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
