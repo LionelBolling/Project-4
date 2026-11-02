@@ -4,13 +4,15 @@ extends "res://scripts/runner_race_scene.gd"
 const MonsterEncounters = preload("res://scripts/level_1_enemy_manager.gd")
 const LENGTH_MULTIPLIER := 1.25
 const WIDTH_MULTIPLIER := 1.6
-const PARKOUR_SECTIONS := 1
+const PARKOUR_SECTIONS := 3
 const CHANGING_WALL_COUNT := 4
 var changing_walls: Array[Dictionary] = []
 var wall_rng := RandomNumberGenerator.new()
 var wall_clock := 0.0
 var rival_stall_time := 0.0
 var rival_progress_z := START_Z
+var rival_route: Array[Vector3] = []
+var rival_recoveries := 0
 
 func _init() -> void:
 	# Use the standard level controls shared with Levels 1 and 3.
@@ -18,6 +20,7 @@ func _init() -> void:
 
 func _build_track() -> void:
 	super._build_track()
+	_build_rival_route()
 	if has_node("Level2Parkour"): return
 	# Extend actual geometry and colliders instead of scaling physics bodies.
 	for node in get_node("CourseGeometry").get_children():
@@ -33,20 +36,25 @@ func _build_track() -> void:
 			node.mesh.size.x *= WIDTH_MULTIPLIER
 			# Long stripes extend with the course, gate posts retain their depth.
 			if "Stripe" in str(node.name): node.mesh.size.z *= LENGTH_MULTIPLIER
+	# Keep the top at Y=0 with a substantial, permanent foundation underneath.
+	var runway := get_node("CourseGeometry/Raceway") as StaticBody3D
+	runway.position.y = -0.6
+	(runway.get_node("Mesh").mesh as BoxMesh).size.y = 1.2
+	(runway.get_node("CollisionShape3D").shape as BoxShape3D).size.y = 1.2
 	var obstacles := Node3D.new()
 	obstacles.name = "Level2Parkour"
 	add_child(obstacles)
 	_assign_owner(obstacles)
 	var blue := _material(Color("3469a3"), 0.4)
 	var gold := _material(Color("efb86b"), 0.5)
-	# One optional low stair route; the continuous middle lane stays clear.
+	# Alternating stair routes give both runners real parkour across the course.
 	for section in range(PARKOUR_SECTIONS):
 		var side := -1.0 if section % 2 == 0 else 1.0
-		var z := -24.0 - section * 40
+		var z := -24.0 - section * 70
 		for step in range(3):
-			var height := 0.25 + step * 0.2
+			var height := 0.55 + step * 0.4
 			_add_solid(obstacles, "Step_%d_%d" % [section, step], Vector3(side * 3.8, height / 2, z - step * 2.8), Vector3(3.4, height, 2.4), blue)
-		_add_solid(obstacles, "Landing_%d" % section, Vector3(side * 3.8, 0.3, z - 12), Vector3(5.0, 0.6, 4), gold)
+		_add_solid(obstacles, "Landing_%d" % section, Vector3(side * 3.8, 0.675, z - 12), Vector3(5.0, 1.35, 4), gold)
 		# Low staggered hurdles leave an alternate lane for speed runners.
 		_add_solid(obstacles, "Hurdle_%d" % section, Vector3(-side * 3.3, 0.11, z - 17), Vector3(3.0, 0.22, 0.7), gold)
 	# Side walls rise and shrink independently, with identical visual/collision
@@ -59,6 +67,17 @@ func _build_track() -> void:
 		var target := wall_rng.randf_range(1.1, 1.6) if height < 0.9 else wall_rng.randf_range(0.5, 1.2)
 		changing_walls.append({"body": body, "height": height, "start": height, "target": target, "elapsed": 0.0, "duration": wall_rng.randf_range(5.0, 8.0), "home": height})
 
+func _build_rival_route() -> void:
+	# Rebuild data even when the editor has already generated the geometry.
+	rival_route.clear()
+	for section in range(PARKOUR_SECTIONS):
+		var side := -1.0 if section % 2 == 0 else 1.0
+		var z := -24.0 - section * 70
+		rival_route.append(Vector3(side * 3.8, 0, z + 7))
+		for step in range(3):
+			rival_route.append(Vector3(side * 3.8, 0.55 + step * 0.4, z - step * 2.8))
+		rival_route.append(Vector3(side * 3.8, 1.35, z - 13.5))
+
 func _ready() -> void:
 	super._ready()
 	if Engine.is_editor_hint(): return
@@ -66,7 +85,7 @@ func _ready() -> void:
 	rival.run_speed = 5.2
 	rival.rubberband_enabled = false
 	rival.projectile_spawn_chance = 0.2
-	# The middle lane clears the stairs, staggered hurdles and moving side walls.
+	# The Level 2 opponent follows the authored stairs instead of bypassing them.
 	rival.story_lane_sway = 0.0
 	rival.finish_z = _finish_position()
 	player.camera.far = 1600
@@ -108,6 +127,12 @@ func _physics_process(dt: float) -> void:
 		wall.height = lerpf(wall.start, wall.target, smoothstep(0, 1, wall.elapsed / wall.duration))
 		_set_wall_height(wall, wall.height)
 
+func _add_csg_hole(surface: Object, hit_position: Vector3, hole_radius: float) -> void:
+	var source := _resolve_race_surface(surface)
+	# Wall impacts remain destructible; the structural runway cannot disappear.
+	if source != null and source.name == "Raceway": return
+	super._add_csg_hole(surface, hit_position, hole_radius)
+
 func _update_rival_progress(dt: float) -> void:
 	if race_state != "RACING" or not rival.race_active:
 		rival_stall_time = 0.0
@@ -122,6 +147,7 @@ func _update_rival_progress(dt: float) -> void:
 		return
 	# Recover on the continuous rival floor without advancing down the course.
 	var recovery_z := clampf(rival.position.z, _finish_position() + 0.5, START_Z)
+	rival_recoveries += 1
 	rival.reset_for_race()
 	rival.position = Vector3(0.0, 0.05, recovery_z)
 	rival.start_race()
@@ -157,6 +183,7 @@ func _restart_race() -> void:
 		_build_monster_encounters()
 	rival_stall_time = 0.0
 	rival_progress_z = rival.position.z
+	rival_recoveries = 0
 	wall_clock = 0
 	wall_rng.seed = 22026
 	for wall in changing_walls:

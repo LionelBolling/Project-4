@@ -88,6 +88,9 @@ func run() -> void:
 			race.restart_timer = 0
 			race._process(0.01)
 		await wait_travel()
+		if index == 4:
+			assert(current_scene.scene_file_path == "res://scenes/final_ending.tscn", "Last pursuit leads directly to the ending")
+			break
 		assert(current_scene.scene_file_path == Progress.HUB, "Win returns to city")
 		assert(Progress.piece_index == index + 1)
 		assert(current_scene.phase == "EXPLORE", "Arrival only plays once")

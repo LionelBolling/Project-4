@@ -21,7 +21,8 @@ func run() -> void:
 	level.player.set_physics_process(false)
 	var course = level.get_node("MonsterEncounters")
 	course.set_process(false)
-	check(rival.story_lane_sway == 0.0, "Level 2 selects the clear middle route")
+	check(level.rival_route.size() == 15, "Level 2 provides a route across every staircase")
+	rival.projectile_spawn_chance = 0.0
 	# Reproduce being pinned beside a hurdle without forward movement.
 	rival.set_physics_process(false)
 	rival.position = Vector3(3.3, 0.05, -41.0)
@@ -35,18 +36,26 @@ func run() -> void:
 	await physics_frame
 	await physics_frame
 	check(rival.position.y > 0.0 and absf(rival.position.x) < 0.01, "Fallen rival returns to floor")
-	# Run the entire shortened course with actual physics and moving walls.
+	# Run the full course with actual physics, recording real jumps and landings.
 	for attempt in range(3):
 		level._restart_race()
 		level._start_race()
 		var elapsed := 0.0
 		var longest_stall := 0.0
+		var elevated_sections: Dictionary = {}
 		while rival.race_active and elapsed < 65.0:
 			await physics_frame
 			elapsed += 1.0 / Engine.physics_ticks_per_second
 			longest_stall = maxf(longest_stall, level.rival_stall_time)
+			if rival.is_on_floor() and rival.position.y > 0.3:
+				var section := clampi(roundi((-rival.position.z - 24) / 70), 0, 2)
+				elevated_sections[section] = true
 		check(rival.position.z <= level._finish_position(), "Rival completes full course on run %d" % attempt)
 		check(longest_stall < 2.0, "Clear route avoids prolonged stalls on run %d" % attempt)
+		check(rival.parkour_jumps >= 6, "Rival performs physical parkour jumps on run %d" % attempt)
+		check(elevated_sections.size() == 3, "Rival lands on all three parkour sections on run %d" % attempt)
+		check(level.rival_recoveries == 0, "Rival completes the authored route without recovery teleports")
+		print("Run %d: %.1fs, %d jumps, %d elevated sections, final %s" % [attempt, elapsed, rival.parkour_jumps, elevated_sections.size(), rival.position])
 	level.queue_free()
 	await process_frame
 	print("LEVEL2 RIVAL CHECK: %d failures" % failures)

@@ -434,7 +434,7 @@ func _create_progress_lane(parent: Control, lane_name: String, tint: Color, scen
 	var lane_label := Label.new()
 	lane_label.position = Vector2(2.0, 5.0)
 	lane_label.size = Vector2(68.0, 23.0)
-	lane_label.text = lane_name
+	lane_label.text = "" if preload("res://scripts/city_progress.gd").active else lane_name
 	lane_label.add_theme_font_size_override("font_size", 13)
 	lane_label.add_theme_color_override("font_color", tint)
 	lane_label.add_theme_color_override("font_outline_color", Color(0.015, 0.015, 0.04, 1.0))
