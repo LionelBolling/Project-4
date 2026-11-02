@@ -2,8 +2,70 @@ extends Node3D
 
 const GAME_SCENE := "res://scenes/bedroom_intro.tscn"
 
+const GLITCH_INTERVAL := 2.5
+const GLITCH_DURATION := 1.0
+var _elapsed := 0.0
+var _background_material: ShaderMaterial
+
 func _ready() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_build_background()
 	_build_title_ui()
+
+func _make_viewport(label_text: String) -> SubViewport:
+	var viewport := SubViewport.new()
+	viewport.name = label_text
+	viewport.size = Vector2i(1280, 720)
+	viewport.own_world_3d = true
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	add_child(viewport)
+	return viewport
+
+func _build_background() -> void:
+	var bedroom_view := _make_viewport("BedroomView")
+	var bedroom := preload("res://scripts/title_bedroom.gd").new()
+	bedroom_view.add_child(bedroom)
+	var neon_view := _make_viewport("NeonView")
+	var neon_root := Node3D.new()
+	neon_view.add_child(neon_root)
+	var world := WorldEnvironment.new()
+	world.environment = Environment.new()
+	neon_root.add_child(world)
+	var camera := Camera3D.new()
+	neon_root.add_child(camera)
+	camera.position = Vector3(0, -30, 42)
+	camera.look_at(Vector3(0, -18, -90))
+	camera.current = true
+	camera.fov = 75.0
+	var city := preload("res://scripts/neon_world.gd").new()
+	city.district_length = 180.0
+	neon_root.add_child(city)
+	var layer := CanvasLayer.new()
+	layer.layer = -1
+	add_child(layer)
+	var background := TextureRect.new()
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	background.texture = bedroom_view.get_texture()
+	_background_material = ShaderMaterial.new()
+	_background_material.shader = preload("res://scripts/title_glitch.gdshader")
+	_background_material.set_shader_parameter("neon_texture", neon_view.get_texture())
+	background.material = _background_material
+	layer.add_child(background)
+
+func _process(delta: float) -> void:
+	_elapsed += delta
+	# First intrusion at 2.5 seconds; subsequent intrusions start every 2.5 seconds.
+	var phase := fposmod(_elapsed, GLITCH_INTERVAL)
+	var active := _elapsed >= GLITCH_INTERVAL and phase < GLITCH_DURATION
+	var strength := 0.0
+	if active:
+		strength = 0.35 + 0.65 * maxf(1.0 - phase / 0.16, smoothstep(0.8, 1.0, phase))
+	_background_material.set_shader_parameter("elapsed", _elapsed)
+	_background_material.set_shader_parameter("neon_amount", 1.0 if active else 0.0)
+	_background_material.set_shader_parameter("glitch", strength)
 
 func _build_title_ui() -> void:
 	var layer := CanvasLayer.new()
