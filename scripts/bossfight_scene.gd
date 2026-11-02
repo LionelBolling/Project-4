@@ -14,7 +14,7 @@ const APPROACH_DISTANCE := 8.0
 const MIN_SHADOW_LEAD := 12.0
 const MAX_SHADOW_LEAD := 20.0
 const RESULTS_PAUSE := 3.0
-const NEXT_SCENE := "res://scenes/title_screen.tscn"
+const NEXT_SCENE := "res://scenes/final_ending.tscn"
 
 @onready var player: MovementTestPlayer = $Player
 @onready var rival: RaceOpponent = $Rival
@@ -121,7 +121,7 @@ func _process(delta: float) -> void:
 		"WIN":
 			restart_timer -= delta
 			if restart_timer <= 0.0:
-				preload("res://scripts/city_progress.gd").complete_race(get_tree(), NEXT_SCENE)
+				get_tree().change_scene_to_file(NEXT_SCENE)
 	_update_cut_camera(delta)
 	_update_hud()
 
@@ -193,7 +193,7 @@ func _begin_chase_cycle() -> void:
 	rival.set_physics_process(true)
 	rival.start_race()
 	_set_player_camera()
-	_hud_action.text = "CHASE THE SHADOW"
+	_hud_action.text = ""
 
 func _maintain_shadow_lead() -> void:
 	var lead := player.global_position.z - rival.global_position.z
@@ -287,7 +287,7 @@ func _finish_enemy_launch() -> void:
 	if successful_hits >= 4:
 		phase = "WIN"
 		restart_timer = RESULTS_PAUSE
-		_hud_action.text = "YOU WIN!"
+		_hud_action.text = ""
 		player.set_physics_process(false)
 		rival.set_physics_process(false)
 		if has_meta("story_round"):
@@ -412,7 +412,7 @@ func _build_hud() -> void:
 	stack.add_theme_constant_override("separation", 5)
 	panel.add_child(stack)
 	var title := Label.new()
-	title.text = "SHADOW CHASE"
+	title.text = ""
 	title.add_theme_font_size_override("font_size", 22)
 	title.add_theme_color_override("font_color", Color("62f4e1"))
 	stack.add_child(title)
@@ -421,7 +421,7 @@ func _build_hud() -> void:
 	_hud_phase.visible = false
 	stack.add_child(_hud_phase)
 	_hud_progress = Label.new()
-	_hud_progress.text = "SHADOW HEALTH"
+	_hud_progress.text = ""
 	_hud_progress.add_theme_font_size_override("font_size", 15)
 	_hud_progress.add_theme_color_override("font_color", Color("ff83cb"))
 	stack.add_child(_hud_progress)
@@ -460,7 +460,7 @@ func _update_hud() -> void:
 		_hud_action.text = "PRESS  [ %s ]" % qte_key
 	elif phase == "WIN":
 		_hud_action.visible = true
-		_hud_action.text = "WIN!"
+		_hud_action.text = ""
 		_hud_action.add_theme_color_override("font_color", Color("7ffff0"))
 		_hud_action.add_theme_color_override("font_outline_color", Color("168cff"))
 	elif phase == "COUNTDOWN":

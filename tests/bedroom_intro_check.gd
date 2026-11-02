@@ -13,19 +13,40 @@ func run() -> void:
 	var intro = current_scene
 	assert(intro.scene_file_path == "res://scenes/bedroom_intro.tscn", "Start opens bedroom")
 	assert(intro.phase == "room_entry", "Walk-in cinematic starts")
+	intro.phase_time = 3.9
+	intro._tick_room_entry(0.016)
+	assert(not intro.reflection.visible and not intro.mirror_used, "Opening never triggers the mirror reveal")
 	intro.phase_time = 5.6
 	intro._tick_room_entry(0.016)
 	assert(intro.phase == "bedroom", "Walk-in hands over control")
 	assert(intro.bedroom_model.visible, "Exploration stays third person")
 	assert(intro.controls.text.is_empty() and intro.message.text.is_empty(), "No objectives before interaction")
+	intro.walker.position = Vector3(7.3, 0.05, 2)
+	assert(intro._can_touch_mirror(), "Mirror offers a nearby interaction")
+	intro._interact()
+	assert(intro.phase == "mirror" and intro.mirror_used, "Interaction starts the mirror shot and consumes it immediately")
+	intro.phase_time = 1.0
+	intro._tick_mirror()
+	assert(intro.reflection.visible, "Mirror reveal plays only after interaction")
+	intro.phase_time = 3.3
+	intro._tick_mirror()
+	assert(intro.phase == "bedroom" and not intro.reflection.visible, "Mirror returns control")
+	assert(not intro._can_touch_mirror(), "Mirror cannot be used again")
+	intro._interact()
+	assert(intro.phase == "bedroom", "Repeated interaction does not replay the mirror shot")
 	intro.walker.position = Vector3(-2.8, 0.05, -1)
 	intro._interact()
-	assert(intro.phase == "bedroom" and not intro.boombox_on, "Bed requires music")
-	assert(intro.message.text == "I cant go to sleep without some noise", "Bed responds after interaction")
+	assert(intro.phase == "tape_glimpse" and not intro.boombox_on, "Bed points visually toward the boombox")
+	assert(intro.message.text.is_empty(), "No written story explanation")
+	intro.phase_time = 3.3
+	intro._tick_tape_glimpse()
 	assert(intro.bedroom_model.visible, "Failed sleep stays third person")
 	intro.walker.position = Vector3(1.4, 0.05, -5.3)
 	intro._interact()
-	assert(intro.boombox_on and intro.phase == "bedroom", "Music starts without abduction")
+	assert(intro.boombox_on and intro.phase == "tape_glimpse", "Music reveals the boy already trapped in the cassette")
+	assert(intro.prisoner.visible, "The real boy is visible before the dream")
+	intro.phase_time = 3.3
+	intro._tick_tape_glimpse()
 	intro.walker.position = Vector3(-2.8, 0.05, -1)
 	intro._interact()
 	assert(intro.phase == "sleep", "Bed starts sleep")

@@ -118,7 +118,7 @@ func _build_glide() -> void:
 func _update() -> void:
 	health_root.visible = Progress.active
 	health_fill.value = Progress.health
-	health_text.text = "HEALTH   %d / %d" % [Progress.health, Progress.MAX_HEALTH]
+	health_text.text = "%d / %d" % [Progress.health, Progress.MAX_HEALTH]
 	glide_root.visible = player.state == "GLIDING" and not player.is_on_floor() and player.is_physics_processing()
 	glide_fill.value = 100 * (1 - clampf(player.glide_timer / player.glide_max_duration, 0, 1))
 	var background := glide_fill.get_theme_stylebox("background") as StyleBoxFlat

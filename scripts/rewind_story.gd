@@ -43,6 +43,7 @@ var message: Label
 var message_time := 0.0
 var sleep_rotation := Quaternion.IDENTITY
 var entrance_door: Node3D
+var mirror_used := false
 
 func _ready() -> void:
 	_build_ui()
@@ -157,14 +158,23 @@ func _build_room() -> void:
 	Props.box(room, Vector3(0.3, 0.02, 1), Vector3(5.2, 0.03, 5.5), Color("122b4c"))
 	Props.box(room, Vector3(3.5, 2.5, -9.85), Vector3(1.8, 1.4, 0.05), Color("b09675"))
 	Props.box(room, Vector3(3.5, 2.5, -9.8), Vector3(1.6, 1.2, 0.04), Color("3d5f75"))
-	# Mirror faces the room. The ending uses a staged reflected figure.
+	# This reveal is available only through the one-time mirror interaction.
 	Props.box(room, Vector3(8.84, 1.9, 2), Vector3(0.1, 3.1, 1.8), Color("6985a3"))
 	Props.box(room, Vector3(8.77, 1.9, 2), Vector3(0.03, 2.9, 1.6), Color("324e71"), 0.2)
-	reflection = Props.person(room, Vector3(8.65, 0.55, 2), true)
+	reflection = preload("res://enemy_runner/enemy_runner.tscn").instantiate()
+	room.add_child(reflection)
+	reflection.position = Vector3(8.65, 0.05, 2)
 	reflection.rotation.y = -PI / 2
 	reflection.hide()
-	prisoner = Props.person(boombox, Vector3(0, -0.16, 0.32))
-	prisoner.scale *= 0.18
+	prisoner = preload("res://enemy_runner/enemy_runner.tscn").instantiate()
+	boombox.add_child(prisoner)
+	prisoner.position = Vector3(0, -0.24, 0.58)
+	prisoner.scale = Vector3.ONE * 0.22
+	prisoner.call("set_expression", "surprised")
+	# The real boy is already behind the cassette window before play begins.
+	Props.box(boombox, Vector3(0, 0, 0.54), Vector3(0.62, 0.65, 0.025), Color("070b16"))
+	for side in [-1, 1]:
+		Props.box(boombox, Vector3(side * 0.32, 0, 0.55), Vector3(0.025, 0.67, 0.025), Color("59718a"))
 	prisoner.hide()
 	portal = Node3D.new()
 	room.add_child(portal)
@@ -255,17 +265,28 @@ func _can_touch_bed() -> bool:
 	var offset := walker.position - Vector3(-5.0, 0, -1)
 	return absf(offset.x) < 2.5 and absf(offset.z) < 3.0
 
+func _can_touch_mirror() -> bool:
+	return not mirror_used and Vector2(walker.position.x, walker.position.z).distance_to(Vector2(8.6, 2)) < 2.2
+
 func _interact() -> void:
 	if phase != "bedroom": return
-	if _can_touch_boombox() and not boombox_on:
+	if _can_touch_mirror():
+		mirror_used = true
+		walker.velocity = Vector3.ZERO
+		bedroom_model.rotation.y = PI / 2
+		bedroom_model.call("play_animation", &"Idle", 0.1)
+		_set_phase("mirror")
+	elif _can_touch_boombox() and not boombox_on:
 		message.text = ""
 		message_time = 0
 		boombox_on = true
 		music_fx.playing = true
+		prisoner.show()
+		_set_phase("tape_glimpse")
 	elif _can_touch_bed():
 		if not boombox_on:
-			message.text = "I cant go to sleep without some noise"
-			message_time = 3.5
+			# Direct attention to the boombox without a written objective.
+			_set_phase("tape_glimpse")
 			return
 		message.text = ""
 		message_time = 0
@@ -315,7 +336,7 @@ func _physics_process(dt: float) -> void:
 	target.x = clampf(target.x, -8.3, 8.3)
 	camera.position = camera.position.lerp(target, 1 - exp(-8 * dt))
 	camera.look_at(walker.position + Vector3(0, 1, -0.5))
-	interaction_button.visible = (_can_touch_boombox() and not boombox_on) or _can_touch_bed()
+	interaction_button.visible = (_can_touch_boombox() and not boombox_on) or _can_touch_bed() or _can_touch_mirror()
 	interaction_button.text = "[ E ]"
 	controls.text = ""
 
@@ -327,11 +348,13 @@ func _process(dt: float) -> void:
 	match phase:
 		"room_entry": _tick_room_entry(dt)
 		"sleep": _tick_sleep()
+		"tape_glimpse": _tick_tape_glimpse()
+		"mirror": _tick_mirror()
 		"portal":
 			_tick_abduction(dt)
 		"race", "boss":
 			fade.color.a = maxf(0, 1 - phase_time)
-			title.text = ("FINAL ROUND" if phase == "boss" else "ROUND %d" % round_number) if phase_time < 2.8 else ""
+			title.text = ""
 			if phase == "boss":
 				stage._hud_action.visible = stage.phase == "QTE"
 				stage._hud_action.text = stage.qte_key
@@ -342,6 +365,7 @@ func _tick_room_entry(dt: float) -> void:
 	var t := phase_time
 	var progress := clampf(t / 3.4, 0, 1)
 	walker.position = Vector3(0, 0.05, lerpf(9.3, 4.4, smoothstep(0, 1, progress)))
+	reflection.hide()
 	bedroom_model.rotation.y = PI
 	bedroom_model.call("play_animation", &"Run" if t < 3.4 else &"Idle", 0.2)
 	# Slow the existing locomotion clip into a relaxed walk.
@@ -355,10 +379,41 @@ func _tick_room_entry(dt: float) -> void:
 		camera.position = Vector3(3, 2.8, 1.5).lerp(Vector3(0, 3.15, 7.5), blend)
 		camera.look_at(walker.position + Vector3(0, 1, -0.5))
 	if t >= 5.5:
+		reflection.hide()
 		_set_phase("bedroom")
 		bedroom_model.animation_player.speed_scale = 1
 		_solid(room, Vector3(0, 1.5, 8), Vector3(2.4, 3, 0.15), Color("193357"))
 		room.get_child(room.get_child_count() - 1).get_child(0).hide()
+
+func _tick_mirror() -> void:
+	camera.position = Vector3(4.5, 2.8, 5.5)
+	camera.look_at(Vector3(7.4, 1.25, 2))
+	reflection.visible = phase_time >= 0.7 and phase_time < 1.6
+	reflection.call("play_animation", &"Idle", 0.0)
+	if phase_time >= 3.2:
+		reflection.hide()
+		camera.position = walker.position + Vector3(0, 3.1, 4.3)
+		camera.look_at(walker.position + Vector3.UP)
+		_set_phase("bedroom")
+
+func _tick_tape_glimpse() -> void:
+	var focus := boombox.global_position + Vector3(0, 0.02, 0.6)
+	camera.position = boombox.position + Vector3(0.9, 0.45, 1.9)
+	camera.look_at(focus)
+	if boombox_on:
+		prisoner.show()
+		prisoner.call("play_animation", &"Idle", 0.1)
+		# The same open-palm plea returns at the sealed portal in the ending.
+		var rig: Skeleton3D = prisoner.skeleton
+		var arm := rig.find_bone("UpperArm.R")
+		var forearm := rig.find_bone("Forearm.R")
+		var pose := rig.get_bone_global_pose(arm)
+		var from := (rig.get_bone_global_pose(forearm).origin - pose.origin).normalized()
+		var toward := (rig.to_local(boombox.global_position + Vector3(0.1, 0.15, 1.0)) - pose.origin).normalized()
+		pose.basis = Basis(Quaternion(from, toward)) * pose.basis
+		rig.set_bone_global_pose_override(arm, pose, 1.0, true)
+	if phase_time >= 3.2:
+		_set_phase("bedroom")
 
 func _tick_abduction(dt: float) -> void:
 	var t := phase_time
@@ -418,7 +473,7 @@ func start_round(number: int) -> void:
 		stage.player.status_label = null
 	_set_phase("boss" if number == 4 else "race")
 	_strip_gameplay_text(stage)
-	controls.text = "WASD run  ·  Space jump / hold glide  ·  Shift dive  ·  Q E R F counter"
+	controls.text = ""
 	fade.color.a = 1
 
 func _strip_gameplay_text(node: Node) -> void:
@@ -475,50 +530,8 @@ func _tick_between(dt: float) -> void:
 	fade.color.a = clampf((phase_time - 5.5) / 1.5, 0, 1)
 	if phase_time > 7: start_round(round_number + 1)
 
-func _tick_ending(dt: float) -> void:
-	if phase_time < 3:
-		stage.rival.visual.scale = Vector3.ONE * maxf(0.01, 1 - phase_time / 3)
-	elif phase_time < 6:
-		if is_instance_valid(exit_box):
-			cassette.position = cassette.position.lerp(exit_box.position + Vector3(0, 0, 0.3), minf(dt * 3, 1))
-			stage._camera.position = stage._camera.position.lerp(exit_box.position + Vector3(0, 1.7, 4), minf(dt * 2, 1))
-			stage._camera.look_at(exit_box.position + Vector3.UP * 0.4)
-			exit_portal.visible = phase_time > 4
-			exit_portal.rotation.z += dt
-		fade.color.a = clampf((phase_time - 4.5) / 1.3, 0, 1)
-	elif not home_returned:
-		home_returned = true
-		stage.hide()
-		room.show()
-		room.process_mode = Node.PROCESS_MODE_INHERIT
-		bedroom_model.show()
-		bedroom_model.scale = Vector3.ONE
-		bedroom_model.rotation = Vector3(0, PI, 0)
-		bedroom_model.call("play_animation", &"Idle", 0.1)
-		walker.position = Vector3(2.5, 0.05, 2.8)
-		cassette.reparent(boombox)
-		cassette.position = Vector3(0, 0, 0.32)
-		cassette.scale = Vector3.ONE * 0.6
-		portal.hide()
-		camera.current = true
-		camera.position = Vector3(0, 1.7, 3)
-	elif phase_time < 11:
-		fade.color.a = maxf(0, 1 - (phase_time - 6))
-		camera.position = camera.position.lerp(Vector3(2.6, 1.7, 1.2), dt * 0.6)
-		camera.look_at(Vector3(6.7, 1.6, 2))
-		reflection.visible = phase_time > 8.5 and (sin(phase_time * 35) > -0.3)
-	elif phase_time < 16:
-		reflection.show()
-		prisoner.show()
-		cassette.hide()
-		camera.position = camera.position.lerp(Vector3(1.4, 1.7, -2.7), dt * 1.4)
-		camera.look_at(boombox.global_position)
-		prisoner.rotation.z = sin(phase_time * 4) * 0.12
-	else:
-		_set_phase("complete")
-		title.text = "YOU WIN"
-		controls.text = "Enter  ·  Replay"
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+func _tick_ending(_dt: float) -> void:
+	get_tree().change_scene_to_file("res://scenes/final_ending.tscn")
 
 func _build_audio() -> void:
 	music = AudioStreamPlayer.new()

@@ -194,7 +194,7 @@ func _spawn_piece() -> void:
 	light.omni_range = 8
 	piece.add_child(light)
 	marker = Label3D.new()
-	marker.text = "TAPE %d" % (Progress.piece_index + 1)
+	marker.text = "●".repeat(Progress.piece_index + 1)
 	marker.font_size = 64
 	marker.pixel_size = 0.014
 	marker.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -204,6 +204,32 @@ func _spawn_piece() -> void:
 	marker.hide()
 	add_child(marker)
 	Props.box(self, piece_home - Vector3.UP * 0.8, Vector3(1.5, 0.12, 1.5), Color("784be6"), 1)
+	if Progress.piece_index == Progress.LEVELS.size() - 1:
+		_build_home_window()
+
+func _build_home_window() -> void:
+	# The final tape shows the bedroom itself: the captive is running for home.
+	var view := SubViewport.new()
+	view.name = "HomeWindow"
+	view.size = Vector2i(512, 288)
+	view.own_world_3d = true
+	view.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	add_child(view)
+	view.add_child(preload("res://scripts/title_bedroom.gd").new())
+	var window := MeshInstance3D.new()
+	var quad := QuadMesh.new()
+	quad.size = Vector2(3.6, 2.1)
+	window.mesh = quad
+	window.position = piece_home + Vector3(0, 2, 0)
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_texture = view.get_texture()
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	window.material_override = material
+	add_child(window)
+	for side in [-1, 1]:
+		Props.box(self, window.position + Vector3(side * 1.9, 0, 0), Vector3(0.08, 2.3, 0.08), Color("ad70fa"), 2)
+		Props.box(self, window.position + Vector3(0, side * 1.1, 0), Vector3(3.9, 0.08, 0.08), Color("ad70fa"), 2)
 
 func _clip(model: Node3D, name: String, is_shadow: bool = false) -> void:
 	if (shadow_clip if is_shadow else player_clip) == name: return
@@ -244,13 +270,13 @@ func _tick_arrival() -> void:
 		_shot(eye, eye + Vector3(sin(angle) * 20, 2, -cos(angle) * 20))
 	elif t < 12:
 		_clip(shadow, "Idle", true)
-		shadow.call("set_expression", "frown")
+		shadow.call("set_expression", "surprised")
 		shadow.rotation.z = sin(t * 10) * 0.02
 		_shot(home + Vector3(0, 1.65, 0), shadow.position + Vector3(0, 1.5, 0))
 	elif t < 14:
-		# The double lunges into the player; the camera is knocked to pavement.
+		# The captive pushes his pursuer away, then flees deeper into the tape.
 		_clip(shadow, "CityShove", true)
-		shadow.call("set_expression", "frown")
+		shadow.call("set_expression", "surprised")
 		var push := smoothstep(12, 12.6, t)
 		shadow.position.z -= push * 1.6
 		shadow.rotation.x = -sin(push * PI) * 0.45
@@ -282,7 +308,7 @@ func _enter_exploration() -> void:
 	_set_control(true)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	if is_instance_valid(marker): marker.visible = player.position.distance_to(piece_home) < 24
-	elif Progress.piece_index >= Progress.LEVELS.size(): prompt.text = "ALL PIECES RESTORED"
+	elif Progress.piece_index >= Progress.LEVELS.size(): prompt.text = ""
 
 func _can_interact() -> bool:
 	return phase == "EXPLORE" and is_instance_valid(piece) and player.global_position.distance_to(piece.global_position) < 2.5
@@ -333,7 +359,7 @@ func _process(dt: float) -> void:
 	elif phase == "EXPLORE" and is_instance_valid(piece):
 		prompt.text = "[ E ]" if _can_interact() else ""
 		_update_marker()
-		marker.text = "TAPE %d" % (Progress.piece_index + 1)
+		marker.text = "●".repeat(Progress.piece_index + 1)
 
 func _build_audio() -> void:
 	sound = AudioStreamPlayer.new()
@@ -366,7 +392,7 @@ func _update_marker() -> void:
 	if cam.is_position_behind(piece_home):
 		point = Vector2(viewport_size.x - 230 if point.x < viewport_size.x * 0.5 else 20, viewport_size.y * 0.5)
 	marker_ui.position = Vector2(clampf(point.x - 90, 20, viewport_size.x - 230), clampf(point.y, 30, viewport_size.y - 120))
-	marker_ui.text = "PIECE %d  /  %dm" % [Progress.piece_index + 1, roundi(player.position.distance_to(piece_home))]
+	marker_ui.text = "●".repeat(Progress.piece_index + 1) + "  /  %d" % roundi(player.position.distance_to(piece_home))
 
 func _build_shove() -> void:
 	# Add an instance-only two-handed shove to the existing shadow skeleton.
@@ -444,7 +470,7 @@ func _tick_ejection() -> void:
 	if amount >= 1:
 		if Progress.health <= 0:
 			phase = "GAME_OVER"
-			prompt.text = "OUT OF HEALTH - ENTER TO RETRY"
+			prompt.text = "↻  [ ENTER ]"
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		else:
 			_enter_exploration()
@@ -494,7 +520,7 @@ func _start_shadow_run() -> void:
 		shadow_route.append(Vector3(stair_x, (i + 1) * height / steps + 0.05, piece_home.z + 6 + (steps - i) * 1.8))
 	shadow_route.append(piece_home - Vector3.UP * 1.15)
 	_clip(shadow, "Run", true)
-	shadow.call("set_expression", "frown")
+	shadow.call("set_expression", "surprised")
 
 func _tick_shadow(dt: float) -> void:
 	if shadow_state == "RUNNING":
