@@ -1,4 +1,6 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/neon_world.tscn" id="7_world"]
 
 [ext_resource type="Script" path="res://scripts/bossfight_scene.gd" id="1_race"]
 [ext_resource type="Script" path="res://scripts/movement_test_player.gd" id="2_player"]
@@ -17,6 +19,10 @@ height = 1.8
 
 [node name="BossFight" type="Node3D"]
 script = ExtResource("1_race")
+
+[node name="NeonWorld" parent="." instance=ExtResource("7_world")]
+endless = true
+accent = Color(1, 0.2, 0.35, 1)
 
 [node name="Player" type="CharacterBody3D" parent="."]
 collision_layer = 4

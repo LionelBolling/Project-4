@@ -96,7 +96,7 @@ func _process(delta: float) -> void:
 		if player_won_race:
 			win_transition_timer -= delta
 			if win_transition_timer <= 0.0:
-				get_tree().change_scene_to_file(NEXT_SCENE)
+				preload("res://scripts/city_progress.gd").complete_race(get_tree(), NEXT_SCENE)
 		return
 	if race_go_timer > 0.0:
 		race_go_timer = maxf(0.0, race_go_timer - delta)
@@ -153,6 +153,7 @@ func _start_race() -> void:
 	shadow.set_physics_process(true)
 
 func _finish_race(player_won: bool) -> void:
+	if not player_won and preload("res://scripts/city_progress.gd").fail_race(get_tree()): return
 	race_state = "FINISHED"
 	player_won_race = player_won
 	win_transition_timer = WIN_RESULTS_SECONDS if player_won else 0.0
@@ -501,6 +502,7 @@ func _next_target() -> MonsterQteTarget:
 	return null
 
 func _respawn_player() -> void:
+	if preload("res://scripts/city_progress.gd").fail_race(get_tree()): return
 	player.spawn_position = _safe_spawn
 	player.global_position = _safe_spawn
 	player.velocity = Vector3.ZERO

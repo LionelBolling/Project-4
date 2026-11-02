@@ -1,5 +1,7 @@
 [gd_scene format=3 uid="uid://cuu7mrdto7fgp"]
 
+[ext_resource type="PackedScene" path="res://scenes/neon_world.tscn" id="14_world"]
+
 [ext_resource type="Script" uid="uid://b6t2f46amtqo1" path="res://scripts/movement_test_player.gd" id="1_player"]
 [ext_resource type="PackedScene" path="res://runner/runner.tscn" id="2_runner"]
 [ext_resource type="Script" uid="uid://gff2uxjlsylw" path="res://scripts/level_1_backdrop.gd" id="3_backdrop"]
@@ -943,7 +945,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3.864387, 0)
 [node name="Enemies" type="Node3D" parent="." unique_id=206883471]
 
 [node name="Shadow" type="CharacterBody3D" parent="Enemies" unique_id=2070379242]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3, 0.05, -8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3, 0.05, 8)
 collision_layer = 2
 floor_max_angle = 0.837758
 floor_snap_length = 0.35
@@ -995,7 +997,7 @@ font_size = 64
 [node name="PauseMenu" parent="." instance=ExtResource("13_pause_menu")]
 
 [node name="Player" type="CharacterBody3D" parent="." unique_id=484129271]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 0.05, 8)
 collision_layer = 4
 floor_max_angle = 0.837758
 floor_snap_length = 0.35
@@ -1235,3 +1237,5 @@ mesh = SubResource("ShortWallMesh")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Wall_Left_05" unique_id=583050585]
 transform = Transform3D(1, 0, 0, 0, 1.5789881, 0, 0, 0, 3.594695, 2.1146164, -0.41511345, -14.310837)
 shape = SubResource("ShortWallShape")
+
+[node name="NeonWorld" parent="." instance=ExtResource("14_world")]

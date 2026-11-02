@@ -1,10 +1,15 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/runner_race.tscn" id="1"]
 [ext_resource type="Script" path="res://scripts/level2.gd" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/neon_world.tscn" id="4_world"]
 [ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="3_pause"]
 
 [node name="Level2" instance=ExtResource("1")]
 script = ExtResource("2")
 
 [node name="PauseMenu" parent="." instance=ExtResource("3_pause")]
+
+[node name="NeonWorld" parent="." instance=ExtResource("4_world")]
+district_length = 300.0
+accent = Color(0.65, 0.3, 1, 1)

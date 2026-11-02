@@ -1,4 +1,6 @@
-[gd_scene load_steps=32 format=3]
+[gd_scene load_steps=33 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/neon_world.tscn" id="14_world"]
 
 [ext_resource type="Script" path="res://scripts/level_3_beta.gd" id="1_scene"]
 [ext_resource type="Script" path="res://scripts/movement_test_player.gd" id="2_player"]
@@ -440,3 +442,6 @@ shape = SubResource("ShadowCapsule")
 [node name="EnemyRunner" parent="Enemies/Shadow" instance=ExtResource("9_shadow_visual")]
 
 [node name="PauseMenu" parent="." instance=ExtResource("12_pause_menu")]
+
+[node name="NeonWorld" parent="." instance=ExtResource("14_world")]
+accent = Color(1, 0.55, 0.2, 1)

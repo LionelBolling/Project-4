@@ -121,7 +121,7 @@ func _process(delta: float) -> void:
 		"WIN":
 			restart_timer -= delta
 			if restart_timer <= 0.0:
-				get_tree().change_scene_to_file(NEXT_SCENE)
+				preload("res://scripts/city_progress.gd").complete_race(get_tree(), NEXT_SCENE)
 	_update_cut_camera(delta)
 	_update_hud()
 
@@ -320,6 +320,7 @@ func _begin_player_flight() -> void:
 	_flight_velocity = Vector3(side * 15.0, 11.0, -1.5)
 
 func _recover_after_failure() -> void:
+	if preload("res://scripts/city_progress.gd").fail_race(get_tree()): return
 	_player_checkpoint = _find_safe_respawn_position(_player_checkpoint)
 	player.spawn_position = _player_checkpoint
 	player.global_position = _player_checkpoint
@@ -401,6 +402,7 @@ func _build_boss_camera() -> void:
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
+	layer.name = "BossHUD"
 	add_child(layer)
 	var panel := PanelContainer.new()
 	panel.position = Vector2(18.0, 16.0)

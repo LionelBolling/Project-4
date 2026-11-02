@@ -134,6 +134,7 @@ func _button_style(fill: Color, border: Color) -> StyleBoxFlat:
 	return style
 
 func _start_game() -> void:
+	preload("res://scripts/city_progress.gd").reset()
 	get_tree().change_scene_to_file(GAME_SCENE)
 
 func _close_game() -> void:

@@ -6,6 +6,7 @@ const BlackProjectileScript = preload("res://scripts/rival_black_projectile.gd")
 ## Rival uses the player's core acceleration, top speed, jump and gravity values.
 ## Its AI picks a continuous cross-track target, jumps, and uses course walls.
 @export var run_speed := 8.5
+@export_range(0.0, 1.0, 0.05) var projectile_spawn_chance := 1.0
 @export var ground_acceleration := 34.0
 @export var air_acceleration := 13.0
 @export var run_momentum_decay := 1.8
@@ -871,6 +872,7 @@ func _has_course_floor_at(sample_x: float, sample_z: float) -> bool:
 	return height_delta <= 5.5 and height_delta >= -8.0
 
 func _spawn_three_black_projectiles() -> void:
+	if randf() > projectile_spawn_chance: return
 	if not is_instance_valid(_player_target) or get_parent() == null:
 		return
 	var race_scene := get_parent()

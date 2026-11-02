@@ -19,7 +19,7 @@ func run() -> void:
 	# Keep results/scene changes out of the isolated rival traversal check.
 	level.set_process(false)
 	level.player.set_physics_process(false)
-	var course = level.get_node("StoryCourse")
+	var course = level.get_node("MonsterEncounters")
 	course.set_process(false)
 	check(rival.story_lane_sway == 0.0, "Level 2 selects the clear middle route")
 	# Reproduce being pinned beside a hurdle without forward movement.

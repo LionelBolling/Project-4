@@ -44,7 +44,7 @@ class_name MovementTestPlayer
 @export var glide_steering_acceleration := 18.0
 @export var glide_fall_speed_limit := 0.8
 @export var glide_delay := 0.10
-@export var glide_max_duration := 3.5
+@export var glide_max_duration := 2.0
 @export_range(0.5, 5.0, 0.1) var glide_start_animation_speed := 3.0
 @export_group("Boombox beat")
 @export_range(0.2, 1.5, 0.01) var speaker_beat_period := 0.5
@@ -97,6 +97,8 @@ var wall_regrab_lock := 0.0
 var wall_jump_animation_active := false
 var wall_jump_animation_name := "wallRunRightJump"
 var glide_timer := 0.0
+var glide_exhausted := false
+var movement_hud: CanvasLayer
 var glide_animation_active := false
 var glide_press_armed := false
 var air_time := 0.0
@@ -153,6 +155,11 @@ func _ready() -> void:
 		_ensure_wall_run_animation_loops()
 	_create_glide_light_trails()
 	_set_animation("Idle")
+	call_deferred("_build_movement_hud")
+
+func _build_movement_hud() -> void:
+	movement_hud = preload("res://scripts/player_session_hud.gd").new()
+	add_child(movement_hud)
 
 func _process(delta: float) -> void:
 	_update_boombox_beat(delta)
@@ -226,13 +233,14 @@ func _physics_process(delta: float) -> void:
 		dive_repeat_speed_bonus = 0.0
 	wall_regrab_lock = maxf(0.0, wall_regrab_lock - delta)
 	var grounded := is_on_floor()
-	var landed_from_glide := was_airborne and (glide_used_this_air or glide_animation_active)
+	var landed_from_glide := was_airborne and glide_exhausted
 	if state not in ["DIVING", "DIVE_LANDING"] and _capsule_is_diving() and _can_restore_capsule():
 		_set_capsule(false)
 	if grounded:
 		coyote_timer = coyote_seconds
 		air_time = 0.0
 		glide_timer = 0.0
+		glide_exhausted = false
 		glide_used_this_air = false
 		glide_press_armed = false
 		if was_airborne and state != "DIVING":
@@ -308,16 +316,19 @@ func _physics_process(delta: float) -> void:
 
 	if not grounded and state not in ["WALL_RUNNING", "WALL_SLIDING"]:
 		if state == "GLIDING":
-			if glide_held and glide_timer < glide_max_duration:
-				glide_timer += delta
+			if glide_held:
+				glide_timer = minf(glide_max_duration, glide_timer + delta)
+				if glide_timer >= glide_max_duration - 0.00001:
+					glide_timer = glide_max_duration
+					glide_exhausted = true
 			else:
 				state = "FALLING"
-				if not glide_animation_active:
-					_set_animation("jumpFall")
-		elif glide_held and glide_press_armed and air_time >= glide_delay and glide_timer < glide_max_duration and not glide_used_this_air and not wall_jump_animation_active and monster_bounce_glide_lock <= 0.0:
+				glide_animation_active = false
+				glide_used_this_air = false
+				_set_animation("jumpFall")
+		elif glide_held and glide_press_armed and air_time >= glide_delay and glide_timer < glide_max_duration and not wall_jump_animation_active and monster_bounce_glide_lock <= 0.0:
 			var was_diving := state == "DIVING"
 			state = "GLIDING"
-			glide_timer = 0.0
 			glide_used_this_air = true
 			glide_press_armed = false
 			glide_animation_active = true
@@ -397,7 +408,7 @@ func _physics_process(delta: float) -> void:
 	elif state == "GLIDING":
 		var glide_target := wish_dir * glide_speed if wish_dir.length_squared() > 0.0 else horizontal
 		horizontal = horizontal.move_toward(glide_target, glide_steering_acceleration * delta)
-		velocity.y = maxf(velocity.y - glide_gravity * delta, -glide_fall_speed_limit)
+		velocity.y = velocity.y - gravity * delta if glide_timer >= glide_max_duration else maxf(velocity.y - glide_gravity * delta, -glide_fall_speed_limit)
 	else:
 		var acceleration := ground_acceleration if grounded else air_acceleration
 		if wish_dir.length_squared() > 0.001:
@@ -587,6 +598,8 @@ func _capsule_is_diving() -> bool:
 	return cap.height < normal_capsule_height - 0.01
 
 func _respawn_at_start() -> void:
+	if preload("res://scripts/city_progress.gd").active and not get_parent().has_meta("city_hub"):
+		if preload("res://scripts/city_progress.gd").fail_race(get_tree()): return
 	global_position = spawn_position
 	velocity = Vector3.ZERO
 	hurt_animation_timer = 0.0
@@ -605,6 +618,7 @@ func _respawn_at_start() -> void:
 	wall_regrab_lock = 0.0
 	wall_jump_animation_active = false
 	glide_timer = 0.0
+	glide_exhausted = false
 	glide_animation_active = false
 	glide_press_armed = false
 	glide_used_this_air = false
@@ -650,7 +664,6 @@ func launch_from_monster_bounce(forward_direction: Vector3, horizontal_speed: fl
 	wall_side = 0
 	wall_jump_animation_active = false
 	wall_regrab_lock = 0.45
-	glide_timer = 0.0
 	glide_animation_active = false
 	glide_press_armed = false
 	glide_used_this_air = false

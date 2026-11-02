@@ -5,6 +5,6 @@
 
 [node name="BedroomIntro" type="Node3D"]
 script = ExtResource("1_story")
-next_scene = "res://scenes/level_0.tscn"
+next_scene = "res://scenes/neon_city.tscn"
 
 [node name="PauseMenu" parent="." instance=ExtResource("2_pause")]

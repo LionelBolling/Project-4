@@ -35,6 +35,13 @@ var interaction_button: Button
 var pull_origin := Vector3.ZERO
 var pull_camera := Vector3.ZERO
 var pull_strands: Array[MeshInstance3D] = []
+var boombox_on := false
+var sleep_origin := Vector3.ZERO
+var music_fx: Node3D
+var eyelids: ColorRect
+var message: Label
+var message_time := 0.0
+var sleep_rotation := Quaternion.IDENTITY
 var entrance_door: Node3D
 
 func _ready() -> void:
@@ -59,16 +66,29 @@ func _build_ui() -> void:
 	controls.add_theme_font_size_override("font_size", 18)
 	controls.add_theme_color_override("font_color", Color("a4b8c7"))
 	layer.add_child(controls)
+	message = Label.new()
+	message.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	message.offset_left = -550
+	message.offset_right = 550
+	message.offset_top = -45
+	message.offset_bottom = 45
+	message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	message.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	message.add_theme_font_size_override("font_size", 32)
+	message.add_theme_color_override("font_outline_color", Color.BLACK)
+	message.add_theme_constant_override("outline_size", 8)
+	message.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(message)
 	interaction_button = Button.new()
 	interaction_button.text = "[ E ]"
 	interaction_button.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	interaction_button.offset_left = -64
-	interaction_button.offset_right = 64
+	interaction_button.offset_left = -190
+	interaction_button.offset_right = 190
 	interaction_button.offset_top = -92
 	interaction_button.offset_bottom = -40
 	interaction_button.add_theme_font_size_override("font_size", 26)
 	interaction_button.focus_mode = Control.FOCUS_NONE
-	interaction_button.pressed.connect(_begin_abduction)
+	interaction_button.pressed.connect(_interact)
 	interaction_button.hide()
 	layer.add_child(interaction_button)
 	fade = ColorRect.new()
@@ -76,6 +96,15 @@ func _build_ui() -> void:
 	fade.color = Color(0.02, 0.01, 0.06, 0)
 	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(fade)
+	eyelids = ColorRect.new()
+	eyelids.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	eyelids.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var shader := Shader.new()
+	shader.code = "shader_type canvas_item; uniform float closure = 0.0; void fragment(){ float edge = min(UV.y, 1.0-UV.y); COLOR = vec4(0.0,0.0,0.0,smoothstep(0.0,0.018,closure*0.52-edge)); }"
+	var material := ShaderMaterial.new()
+	material.shader = shader
+	eyelids.material = material
+	layer.add_child(eyelids)
 
 func _solid(parent: Node3D, p: Vector3, size: Vector3, color: Color) -> void:
 	var body := StaticBody3D.new()
@@ -92,12 +121,12 @@ func _build_room() -> void:
 	room = Node3D.new()
 	room.name = "Bedroom"
 	add_child(room)
-	_solid(room, Vector3(0, -0.2, 0), Vector3(14, 0.4, 16), Color("1b293e"))
+	_solid(room, Vector3(0, -0.2, 0), Vector3(18, 0.4, 20), Color("1b293e"))
 	for side in [-1, 1]:
-		_solid(room, Vector3(side * 7, 2.2, 0), Vector3(0.2, 4.4, 16), Color("10213e"))
-		_solid(room, Vector3(side * 4.1, 2.2, 8), Vector3(5.8, 4.4, 0.2), Color("10213e"))
-		Props.box(room, Vector3(side * 6.85, 4, 0), Vector3(0.03, 0.04, 15.8), Color("4f82bd"), 0.8)
-	_solid(room, Vector3(0, 2.2, -8), Vector3(14, 4.4, 0.2), Color("10213e"))
+		_solid(room, Vector3(side * 9, 2.2, -1), Vector3(0.2, 4.4, 18), Color("10213e"))
+		_solid(room, Vector3(side * 5.1, 2.2, 8), Vector3(7.8, 4.4, 0.2), Color("10213e"))
+		Props.box(room, Vector3(side * 8.85, 4, -1), Vector3(0.03, 0.04, 17.8), Color("4f82bd"), 0.8)
+	_solid(room, Vector3(0, 2.2, -10), Vector3(18, 4.4, 0.2), Color("10213e"))
 	_solid(room, Vector3(0, 3.8, 8), Vector3(2.4, 1.2, 0.2), Color("10213e"))
 	# Visible doorway and short hall for the opening walk-in shot.
 	_solid(room, Vector3(0, -0.2, 9.4), Vector3(2.4, 0.4, 3), Color("142138"))
@@ -112,22 +141,26 @@ func _build_room() -> void:
 	entrance_door.rotation.y = 1.35
 	Props.box(entrance_door, Vector3(-1.15, 1.55, 0), Vector3(2.3, 3.1, 0.12), Color("193357"))
 	Props.box(entrance_door, Vector3(-2, 1.45, -0.1), Vector3(0.2, 0.07, 0.08), Color("9aacc5"))
-	for i in range(34): Props.box(room, Vector3(-6.8 + i * 0.4, 0.006, 0), Vector3(0.015, 0.01, 15.8), Color("0e1b2f"))
-	_solid(room, Vector3(-2.7, 0.4, -1), Vector3(2.8, 0.8, 4.2), Color("353342"))
-	Props.box(room, Vector3(-2.7, 0.92, -1), Vector3(2.8, 0.24, 4.1), Color("b5b4ac"))
-	Props.box(room, Vector3(-2.7, 1.08, -0.3), Vector3(2.82, 0.12, 2.8), Color("385875"))
-	Props.box(room, Vector3(-2.7, 1.1, -2.6), Vector3(2.2, 0.3, 0.7), Color("ded3ba"))
-	_solid(room, Vector3(1.4, 0.5, -4.6), Vector3(4.4, 1, 1), Color("1c304b"))
-	boombox = Props.boombox(room, Vector3(1.4, 1.5, -4.6))
-	cassette = Props.tape(room, Vector3(1.4, 1.5, -4.28))
+	for i in range(44): Props.box(room, Vector3(-8.8 + i * 0.4, 0.006, -1), Vector3(0.015, 0.01, 17.8), Color("0e1b2f"))
+	_solid(room, Vector3(-5.0, 0.4, -1), Vector3(2.8, 0.8, 4.2), Color("353342"))
+	Props.box(room, Vector3(-5.0, 0.92, -1), Vector3(2.8, 0.24, 4.1), Color("b5b4ac"))
+	Props.box(room, Vector3(-5.0, 1.08, -0.3), Vector3(2.82, 0.12, 2.8), Color("385875"))
+	Props.box(room, Vector3(-5.0, 1.1, -2.6), Vector3(2.2, 0.3, 0.7), Color("ded3ba"))
+	_solid(room, Vector3(1.4, 0.5, -7.5), Vector3(4.4, 1, 1), Color("1c304b"))
+	boombox = Props.boombox(room, Vector3(1.4, 1.5, -7.5))
+	cassette = Props.tape(room, Vector3(1.4, 1.5, -7.18))
 	cassette.scale *= 0.6
+	cassette.hide()
+	music_fx = preload("res://scripts/boombox_motion.gd").new()
+	boombox.add_child(music_fx)
+	music_fx.playing = false
 	Props.box(room, Vector3(0.3, 0.02, 1), Vector3(5.2, 0.03, 5.5), Color("122b4c"))
-	Props.box(room, Vector3(3.5, 2.5, -5.85), Vector3(1.8, 1.4, 0.05), Color("b09675"))
-	Props.box(room, Vector3(3.5, 2.5, -5.8), Vector3(1.6, 1.2, 0.04), Color("3d5f75"))
+	Props.box(room, Vector3(3.5, 2.5, -9.85), Vector3(1.8, 1.4, 0.05), Color("b09675"))
+	Props.box(room, Vector3(3.5, 2.5, -9.8), Vector3(1.6, 1.2, 0.04), Color("3d5f75"))
 	# Mirror faces the room. The ending uses a staged reflected figure.
-	Props.box(room, Vector3(6.84, 1.9, 2), Vector3(0.1, 3.1, 1.8), Color("6985a3"))
-	Props.box(room, Vector3(6.77, 1.9, 2), Vector3(0.03, 2.9, 1.6), Color("324e71"), 0.2)
-	reflection = Props.person(room, Vector3(6.65, 0.55, 2), true)
+	Props.box(room, Vector3(8.84, 1.9, 2), Vector3(0.1, 3.1, 1.8), Color("6985a3"))
+	Props.box(room, Vector3(8.77, 1.9, 2), Vector3(0.03, 2.9, 1.6), Color("324e71"), 0.2)
+	reflection = Props.person(room, Vector3(8.65, 0.55, 2), true)
 	reflection.rotation.y = -PI / 2
 	reflection.hide()
 	prisoner = Props.person(boombox, Vector3(0, -0.16, 0.32))
@@ -135,7 +168,7 @@ func _build_room() -> void:
 	prisoner.hide()
 	portal = Node3D.new()
 	room.add_child(portal)
-	portal.position = Vector3(1.4, 2.0, -3.8)
+	portal.position = Vector3(1.4, 2.0, -6.7)
 	for i in range(32):
 		var angle := i * TAU / 32
 		var shard := Props.box(portal, Vector3(cos(angle) * 1.6, sin(angle) * 1.6, 0), Vector3(0.24, 0.4, 0.18), Color("ad70fa"), 3)
@@ -162,7 +195,13 @@ func _build_room() -> void:
 	entrance_light.light_color = Color("aabfe0")
 	entrance_light.light_energy = 1.5
 	entrance_light.omni_range = 7
-	preload("res://scripts/gaming_room.gd").build(room)
+	var gaming_corner := Node3D.new()
+	gaming_corner.name = "GamingCorner"
+	room.add_child(gaming_corner)
+	gaming_corner.position = Vector3(1.0, 0, -2.5)
+	preload("res://scripts/gaming_room.gd").build(gaming_corner)
+	# Furniture footprints keep the walkable center clear.
+	_solid(room, Vector3(5.3, 0.5, -4.8), Vector3(3.9, 1, 1.5), Color("14233b"))
 	walker = CharacterBody3D.new()
 	room.add_child(walker)
 	walker.position = Vector3(0, 0.05, 9.3)
@@ -205,21 +244,60 @@ func _input(event: InputEvent) -> void:
 		AudioServer.set_bus_mute(0, muted)
 	if key == KEY_ESCAPE and phase not in ["race", "boss"] and not has_node("PauseMenu"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED else Input.MOUSE_MODE_CAPTURED
-	if key == KEY_E and phase == "bedroom" and _can_touch_boombox():
-		_begin_abduction()
+	if key == KEY_E and phase == "bedroom":
+		_interact()
 	if key == KEY_ENTER and phase == "complete": get_tree().reload_current_scene()
 
 func _can_touch_boombox() -> bool:
-	return walker.global_position.distance_to(boombox.global_position) < 2.8
+	return Vector2(walker.global_position.x, walker.global_position.z).distance_to(Vector2(boombox.global_position.x, boombox.global_position.z)) < 2.8
+
+func _can_touch_bed() -> bool:
+	var offset := walker.position - Vector3(-5.0, 0, -1)
+	return absf(offset.x) < 2.5 and absf(offset.z) < 3.0
+
+func _interact() -> void:
+	if phase != "bedroom": return
+	if _can_touch_boombox() and not boombox_on:
+		message.text = ""
+		message_time = 0
+		boombox_on = true
+		music_fx.playing = true
+	elif _can_touch_bed():
+		if not boombox_on:
+			message.text = "I cant go to sleep without some noise"
+			message_time = 3.5
+			return
+		message.text = ""
+		message_time = 0
+		bedroom_model.hide()
+		camera.position = walker.position + Vector3(0, 1.65, 0)
+		sleep_origin = camera.position
+		sleep_rotation = camera.quaternion
+		walker.velocity = Vector3.ZERO
+		_set_phase("sleep")
+
+func _set_eyes(amount: float) -> void:
+	eyelids.material.set_shader_parameter("closure", amount)
+
+func _tick_sleep() -> void:
+	var t := phase_time
+	camera.position = sleep_origin.lerp(Vector3(-5.0, 1.42, -2.45), smoothstep(0, 1.6, t))
+	camera.quaternion = sleep_rotation.slerp(Basis.looking_at(Vector3(0.15, 0.7, -0.4)).get_rotation_quaternion(), smoothstep(0, 1.6, t))
+	var closure := 0.0
+	if t >= 1.6 and t < 4.6:
+		closure = pow(sin(fmod(t - 1.6, 1.0) * PI), 4.0)
+	elif t >= 4.6:
+		closure = smoothstep(4.6, 5.5, t)
+	_set_eyes(closure)
+	if t >= 7.5: _begin_abduction()
 
 func _begin_abduction() -> void:
-	if phase != "bedroom" or not _can_touch_boombox(): return
+	if phase != "sleep" or not boombox_on: return
 	pull_origin = walker.position
 	pull_camera = camera.position
 	walker.velocity = Vector3.ZERO
 	_set_phase("portal")
 	portal.show()
-	bedroom_model.call("play_animation", &"hurt", 0.05)
 	for strand in pull_strands: strand.show()
 
 func _physics_process(dt: float) -> void:
@@ -234,16 +312,21 @@ func _physics_process(dt: float) -> void:
 	bedroom_model.call("play_animation", &"Run" if direction.length_squared() > 0.01 else &"Idle", 0.15)
 	var target := walker.position + Vector3(0, 3.1, 4.3)
 	target.z = minf(target.z, 7.5)
-	target.x = clampf(target.x, -6.4, 6.4)
+	target.x = clampf(target.x, -8.3, 8.3)
 	camera.position = camera.position.lerp(target, 1 - exp(-8 * dt))
 	camera.look_at(walker.position + Vector3(0, 1, -0.5))
-	interaction_button.visible = _can_touch_boombox()
+	interaction_button.visible = (_can_touch_boombox() and not boombox_on) or _can_touch_bed()
+	interaction_button.text = "[ E ]"
+	controls.text = ""
 
 func _process(dt: float) -> void:
 	phase_time += dt
+	message_time = maxf(0, message_time - dt)
+	if message_time == 0: message.text = ""
 	_fill_audio()
 	match phase:
 		"room_entry": _tick_room_entry(dt)
+		"sleep": _tick_sleep()
 		"portal":
 			_tick_abduction(dt)
 		"race", "boss":
@@ -279,30 +362,20 @@ func _tick_room_entry(dt: float) -> void:
 
 func _tick_abduction(dt: float) -> void:
 	var t := phase_time
-	portal.rotation.z += dt * (3 + t * 4)
-	portal.scale = Vector3.ONE * (0.75 + minf(t, 1) * 0.35 + sin(t * 28) * 0.05)
-	boombox.position.x = 1.4 + sin(t * 55) * 0.035
-	var destination := Vector3(1.4, 1.15, -3.95)
-	if t < 0.65:
-		# A violent recoil before the pull catches the body.
-		walker.position = pull_origin + Vector3(sin(t * 35) * 0.05, 0, sin(t / 0.65 * PI) * 0.32)
-		bedroom_model.rotation.x = -sin(t / 0.65 * PI) * 0.35
-	else:
-		var amount := clampf((t - 0.65) / 2.2, 0, 1)
-		walker.position = pull_origin.lerp(destination, amount * amount)
-		walker.position.y += sin(amount * PI) * 0.65
-		bedroom_model.rotation.y = lerp_angle(bedroom_model.rotation.y, 0, dt * 8)
-		bedroom_model.rotation.x = -0.65 * minf(amount * 3, 1)
-		bedroom_model.rotation.z = sin(t * 22) * 0.13
-		bedroom_model.scale = Vector3.ONE * (1 - smoothstep(0.65, 1, amount) * 0.95)
-	var focus := walker.position + Vector3.UP
-	var shot := pull_camera.lerp(Vector3(3.5, 2.8, 0), clampf(t / 1.8, 0, 1))
-	camera.position = shot + Vector3(sin(t * 63), cos(t * 49), 0) * minf(t * 0.035, 0.1)
-	camera.look_at(focus.lerp(portal.position, 0.35))
-	camera.fov = 75 + sin(t * 21) * 2 + minf(t * 5, 14)
+	_set_eyes(1.0 - smoothstep(0.05, 0.35, t))
+	portal.rotation.z += dt * (4 + t * 5)
+	portal.scale = Vector3.ONE * (0.65 + sin(t * 28) * 0.04)
+	var amount := smoothstep(0.45, 3.05, t)
+	var destination := boombox.position + Vector3(0, 0, 0.38)
+	camera.position = pull_camera.lerp(destination, amount * amount)
+	camera.position += Vector3(sin(t * 47), sin(t * 34), 0) * sin(amount * PI) * 0.09
+	camera.look_at(boombox.position + Vector3(0, 0.08, 0))
+	camera.rotation.z = sin(t * 18) * 0.075 * sin(amount * PI)
+	camera.fov = 75 + amount * 30
+	walker.position = camera.position - Vector3(0, 1.65, 0)
 	for i in range(pull_strands.size()):
-		var end := walker.position + Vector3((i - 1) * 0.23, 1.1, 0)
-		var start := boombox.position + Vector3((i - 1) * 0.2, 0.1, 0.3)
+		var end := camera.position + camera.basis.x * ((i - 1) * 0.35) - Vector3.UP * 0.4
+		var start := boombox.position + Vector3((i - 1) * 0.2, 0, 0.3)
 		var strand := pull_strands[i]
 		strand.position = (start + end) * 0.5
 		strand.scale.z = maxf(start.distance_to(end), 0.01)
@@ -467,4 +540,6 @@ func _fill_audio() -> void:
 		var frequency: float = notes[int(audio_phase / 2) % 4]
 		if phase in ["portal", "ending"]: frequency *= 1 + sin(audio_phase * 7) * 0.09
 		var sample := sin(audio_phase * frequency * TAU) * 0.2 + sin(beat * 90) * exp(-beat * 14) * 0.4
+		if not boombox_on: sample = 0.0
+		if phase == "sleep": sample *= lerpf(1.0, 0.15, smoothstep(4.6, 5.5, phase_time))
 		music_playback.push_frame(Vector2.ONE * sample)

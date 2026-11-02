@@ -44,11 +44,23 @@ static func boombox(parent: Node3D, pos: Vector3) -> Node3D:
 	var root := Node3D.new()
 	parent.add_child(root)
 	root.position = pos
-	box(root, Vector3.ZERO, Vector3(2.0, 0.85, 0.5), Color("202535"))
-	for side in [-1, 1]:
-		box(root, Vector3(side * 0.66, 0, 0.27), Vector3(0.46, 0.6, 0.04), Color("080c17"))
-		box(root, Vector3(side * 0.66, 0, 0.3), Vector3(0.24, 0.3, 0.02), Color("4d667c"))
-	box(root, Vector3(0, 0, 0.28), Vector3(0.58, 0.36, 0.04), Color("65f5db"), 0.6)
-	box(root, Vector3(0, 0.64, 0), Vector3(1.2, 0.08, 0.09), Color("556273"))
-	for side in [-1, 1]: box(root, Vector3(side * 0.56, 0.51, 0), Vector3(0.08, 0.3, 0.09), Color("556273"))
+	var model := preload("res://runner/boombox.tscn").instantiate()
+	root.add_child(model)
+	var bounds := _model_bounds(model, Transform3D.IDENTITY)
+	var factor := 2.0 / maxf(bounds.size.x, 0.001)
+	model.scale = Vector3.ONE * factor
+	model.position = -bounds.get_center() * factor
+	model.rotation.y = PI
 	return root
+
+static func _model_bounds(node: Node3D, parent_transform: Transform3D) -> AABB:
+	var transform := parent_transform * node.transform
+	var bounds := AABB()
+	if node is MeshInstance3D and node.mesh != null:
+		bounds = transform * node.get_aabb()
+	for child in node.get_children():
+		if child is Node3D:
+			var child_bounds := _model_bounds(child, transform)
+			if child_bounds.size.length_squared() > 0:
+				bounds = child_bounds if bounds.size.length_squared() == 0 else bounds.merge(child_bounds)
+	return bounds

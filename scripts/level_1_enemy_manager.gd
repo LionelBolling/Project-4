@@ -10,9 +10,14 @@ const WIN_RESULTS_SECONDS := 3.0
 const NEXT_SCENE := "res://scenes/Level2.tscn"
 const MAX_PROJECTILE_HOLES := 96
 
-@onready var player: MovementTestPlayer = $Player
-@onready var shadow: RaceOpponent = $Enemies/Shadow
-@onready var finish_line: Node3D = $FinishLine
+@export var encounters_only := false
+@export var encounter_seconds := 2.0
+@export var player_path := NodePath("Player")
+@export var shadow_path := NodePath("Enemies/Shadow")
+@export var goal_path := NodePath("Platforms/Platform_Finish")
+@onready var player: MovementTestPlayer = get_node(player_path)
+@onready var shadow: RaceOpponent = get_node(shadow_path)
+@onready var finish_line: Node3D = get_node_or_null("FinishLine")
 
 var active_targets: Array[MonsterQteTarget] = []
 var current_target: MonsterQteTarget
@@ -43,6 +48,13 @@ const PROGRESS_TRACK_WIDTH := 278.0
 func _ready() -> void:
 	_normal_time_scale = Engine.time_scale
 	_create_prompt()
+	if encounters_only:
+		_race_state = "RACING"
+		_scan_targets()
+		return
+	shadow.global_position.z = player.global_position.z
+	shadow.start_position = shadow.global_position
+	shadow.velocity = Vector3.ZERO
 	shadow.set_rubberband_target(player)
 	player.velocity = Vector3.ZERO
 	player.set_physics_process(false)
@@ -53,7 +65,10 @@ func _exit_tree() -> void:
 	Engine.time_scale = _normal_time_scale
 
 func _process(delta: float) -> void:
-	_update_race_progress()
+	if encounters_only and get_parent().race_state != "RACING":
+		_prompt.text = ""
+		return
+	if not encounters_only: _update_race_progress()
 	if _race_state == "COUNTDOWN":
 		_race_countdown -= delta
 		if _race_countdown <= 0.0:
@@ -64,14 +79,14 @@ func _process(delta: float) -> void:
 		if _race_winner == "PLAYER":
 			_win_transition_timer -= delta
 			if _win_transition_timer <= 0.0:
-				get_tree().change_scene_to_file(NEXT_SCENE)
+				preload("res://scripts/city_progress.gd").complete_race(get_tree(), NEXT_SCENE)
 				return
 		_update_prompt()
 		return
 	if _race_go_timer > 0.0:
 		_race_go_timer = maxf(0.0, _race_go_timer - delta)
 	_check_shadow_hazards()
-	if _check_race_finish():
+	if not encounters_only and _check_race_finish():
 		_update_prompt()
 		return
 	_scan_timer -= delta
@@ -240,6 +255,7 @@ func _check_race_finish() -> bool:
 		_race_winner = "PLAYER" if player.global_position.z <= shadow.global_position.z else "SHADOW"
 	else:
 		_race_winner = "PLAYER" if player_finished else "SHADOW"
+	if _race_winner != "PLAYER" and preload("res://scripts/city_progress.gd").fail_race(get_tree()): return true
 	_race_state = "FINISHED"
 	_win_transition_timer = WIN_RESULTS_SECONDS if _race_winner == "PLAYER" else 0.0
 	Engine.time_scale = _normal_time_scale
@@ -333,7 +349,7 @@ func _try_begin_qte() -> void:
 		return
 	current_target = nearest
 	phase = "QTE"
-	qte_timer = QTE_SECONDS
+	qte_timer = encounter_seconds
 	_qte_entry_momentum = Vector3(player.velocity.x, 0.0, player.velocity.z)
 	Engine.time_scale = _normal_time_scale * QTE_TIME_SCALE
 
@@ -361,7 +377,7 @@ func _finish_player_rush() -> void:
 		return
 	var enemy_launch_direction := _rush_direction
 	var player_bounce_direction := _rush_direction
-	var finish := get_node_or_null("Platforms/Platform_Finish") as Node3D
+	var finish := get_node_or_null(goal_path) as Node3D
 	if finish != null:
 		var to_goal := finish.global_position - current_target.global_position
 		to_goal.y = 0.0
@@ -462,7 +478,7 @@ func _create_prompt() -> void:
 	var layer := CanvasLayer.new()
 	layer.name = "EnemyQTEHUD"
 	add_child(layer)
-	_create_progress_hud(layer)
+	if not encounters_only: _create_progress_hud(layer)
 	_prompt = Label.new()
 	_prompt.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_prompt.position = Vector2(-360.0, 78.0)

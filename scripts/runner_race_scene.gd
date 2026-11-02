@@ -74,7 +74,7 @@ func _process(delta: float) -> void:
 		restart_timer -= delta
 		if restart_timer <= 0.0:
 			if player_won_race:
-				get_tree().change_scene_to_file(_next_scene_path())
+				preload("res://scripts/city_progress.gd").complete_race(get_tree(), _next_scene_path())
 			else:
 				_restart_race()
 
@@ -93,6 +93,7 @@ func _start_race() -> void:
 	rival.set_physics_process(true)
 
 func _finish_race(player_won: bool) -> void:
+	if not player_won and preload("res://scripts/city_progress.gd").fail_race(get_tree()): return
 	race_state = "FINISHED"
 	player_won_race = player_won
 	restart_timer = RESULTS_PAUSE
