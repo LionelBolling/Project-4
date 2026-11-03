@@ -945,7 +945,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3.864387, 0)
 [node name="Enemies" type="Node3D" parent="." unique_id=206883471]
 
 [node name="Shadow" type="CharacterBody3D" parent="Enemies" unique_id=2070379242]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3, 0.05, 8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3, 0.05, -8)
 collision_layer = 2
 floor_max_angle = 0.837758
 floor_snap_length = 0.35
@@ -1002,6 +1002,7 @@ collision_layer = 4
 floor_max_angle = 0.837758
 floor_snap_length = 0.35
 script = ExtResource("1_player")
+respawn_at_last_landing = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player" unique_id=1139022221]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
@@ -1239,3 +1240,4 @@ transform = Transform3D(1, 0, 0, 0, 1.5789881, 0, 0, 0, 3.594695, 2.1146164, -0.
 shape = SubResource("ShortWallShape")
 
 [node name="NeonWorld" parent="." instance=ExtResource("14_world")]
+safety_street_y = -22.0

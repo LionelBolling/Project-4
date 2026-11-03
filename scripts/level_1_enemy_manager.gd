@@ -52,9 +52,6 @@ func _ready() -> void:
 		_race_state = "RACING"
 		_scan_targets()
 		return
-	shadow.global_position.z = player.global_position.z
-	shadow.start_position = shadow.global_position
-	shadow.velocity = Vector3.ZERO
 	shadow.set_rubberband_target(player)
 	player.velocity = Vector3.ZERO
 	player.set_physics_process(false)

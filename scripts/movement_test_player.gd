@@ -56,6 +56,7 @@ class_name MovementTestPlayer
 @export var camera_distance_smoothing := 5.0
 @export var camera_follow_height := 1.85
 @export var fall_reset_height := -18.0
+@export var respawn_at_last_landing := false
 @export_range(0.0, 0.4, 0.01) var landing_squash_strength := 0.18
 @export_range(0.0, 0.4, 0.01) var wall_impact_squash_strength := 0.14
 @export var squash_spring_strength := 120.0
@@ -112,6 +113,7 @@ var jump_was_held := false
 var status_label: Label
 var glide_used_this_air := false
 var spawn_position := Vector3.ZERO
+var last_landing_position := Vector3.ZERO
 var base_visual_scale := Vector3.ONE
 var body_scale_effect := Vector3.ZERO
 var body_scale_velocity := Vector3.ZERO
@@ -134,6 +136,7 @@ var monster_bounce_glide_lock := 0.0
 
 func _ready() -> void:
 	spawn_position = global_position
+	last_landing_position = spawn_position
 	base_visual_scale = visual.scale
 	boombox_root = visual.find_child("Boombox_Root", true, false) as Node3D
 	if boombox_root != null:
@@ -465,6 +468,8 @@ func _physics_process(delta: float) -> void:
 	_update_glide_animation()
 	var impact_velocity := velocity
 	move_and_slide()
+	if respawn_at_last_landing and not grounded and is_on_floor() and global_position.y >= fall_reset_height:
+		last_landing_position = global_position
 	if not grounded and is_on_floor() and impact_velocity.y < -0.5:
 		_trigger_landing_squash(impact_velocity.y)
 	_trigger_wall_impact_squash(impact_velocity)
@@ -598,9 +603,9 @@ func _capsule_is_diving() -> bool:
 	return cap.height < normal_capsule_height - 0.01
 
 func _respawn_at_start() -> void:
-	if preload("res://scripts/city_progress.gd").active and not get_parent().has_meta("city_hub"):
+	if not respawn_at_last_landing and preload("res://scripts/city_progress.gd").active and not get_parent().has_meta("city_hub"):
 		if preload("res://scripts/city_progress.gd").fail_race(get_tree()): return
-	global_position = spawn_position
+	global_position = last_landing_position + Vector3.UP * 0.15 if respawn_at_last_landing else spawn_position
 	velocity = Vector3.ZERO
 	hurt_animation_timer = 0.0
 	hurt_contact_cooldown_timer = 0.0
