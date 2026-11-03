@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/level_0.gd" id="1_race"]
 [ext_resource type="PackedScene" path="res://scenes/neon_world.tscn" id="7_world"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/race_opponent.gd" id="4_rival"]
 [ext_resource type="PackedScene" path="res://enemy_runner/enemy_runner.tscn" id="5_rival_visual"]
 [ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="6_pause_menu"]
+[ext_resource type="PackedScene" path="res://assets/video_tape/tape_piece_1.glb" id="8_tape_piece"]
 
 [sub_resource type="CapsuleShape3D" id="PlayerCapsule"]
 radius = 0.34
@@ -64,3 +65,8 @@ shape = SubResource("RivalCapsule")
 [node name="EnemyRunner" parent="Rival" instance=ExtResource("5_rival_visual")]
 
 [node name="PauseMenu" parent="." instance=ExtResource("6_pause_menu")]
+
+[node name="GoalTapePiece_1" parent="." instance=ExtResource("8_tape_piece")]
+position = Vector3(0, 2.25, -190.6)
+rotation = Vector3(1.5707964, 0, 0)
+scale = Vector3(0.9, 0.9, 0.9)

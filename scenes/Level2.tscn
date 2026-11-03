@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/runner_race.tscn" id="1"]
 [ext_resource type="Script" path="res://scripts/level2.gd" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/neon_world.tscn" id="4_world"]
 [ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="3_pause"]
 [ext_resource type="Script" path="res://scripts/level2_opponent.gd" id="5_ai"]
+[ext_resource type="PackedScene" path="res://assets/video_tape/tape_piece_3.glb" id="6_tape_piece"]
 
 [node name="Level2" instance=ExtResource("1")]
 script = ExtResource("2")
@@ -17,3 +18,8 @@ script = ExtResource("5_ai")
 [node name="NeonWorld" parent="." instance=ExtResource("4_world")]
 district_length = 300.0
 accent = Color(0.65, 0.3, 1, 1)
+
+[node name="GoalTapePiece_3" parent="." instance=ExtResource("6_tape_piece")]
+position = Vector3(0, 2.25, -240.6)
+rotation = Vector3(1.5707964, 0, 0)
+scale = Vector3(0.9, 0.9, 0.9)

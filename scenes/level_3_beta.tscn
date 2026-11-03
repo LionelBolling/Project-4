@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3]
+[gd_scene load_steps=34 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/neon_world.tscn" id="14_world"]
 
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://monsters/microphone/microphone.tscn" id="7_microphone"]
 [ext_resource type="Script" path="res://scripts/race_opponent.gd" id="8_shadow_script"]
 [ext_resource type="PackedScene" path="res://enemy_runner/enemy_runner.tscn" id="9_shadow_visual"]
+[ext_resource type="PackedScene" path="res://assets/video_tape/tape_piece_4.glb" id="13_tape_piece"]
 [ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="12_pause_menu"]
 [ext_resource type="Script" uid="uid://gff2uxjlsylw" path="res://scripts/level_1_backdrop.gd" id="10_backdrop"]
 [ext_resource type="Shader" uid="uid://c8rqfh7sr7wnd" path="res://shaders/pink_gradient_sky.gdshader" id="11_pink_sky"]
@@ -370,6 +371,11 @@ modulate = Color(1, 0.9, 0.55, 1)
 outline_modulate = Color(0.18, 0.04, 0.16, 1)
 text = "FINISH"
 font_size = 64
+
+[node name="GoalTapePiece_4" parent="FinishLine" instance=ExtResource("13_tape_piece")]
+position = Vector3(0, 2.5, 1.1)
+rotation = Vector3(1.5707964, 0, 0)
+scale = Vector3(0.9, 0.9, 0.9)
 
 [node name="DiscoBall3" type="CharacterBody3D" parent="."]
 position = Vector3(0, 0.05, -344)

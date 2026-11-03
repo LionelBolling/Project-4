@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" path="res://monsters/microphone/microphone.tscn" id="10_microphone"]
 [ext_resource type="Script" uid="uid://ct3n2mqlx62ub" path="res://scripts/race_opponent.gd" id="11_shadow_script"]
 [ext_resource type="PackedScene" path="res://enemy_runner/enemy_runner.tscn" id="12_shadow_visual"]
+[ext_resource type="PackedScene" path="res://assets/video_tape/tape_piece_2.glb" id="15_tape_piece"]
 [ext_resource type="PackedScene" path="res://scenes/pause_menu.tscn" id="13_pause_menu"]
 
 [sub_resource type="ShaderMaterial" id="PinkGradientSky"]
@@ -993,6 +994,11 @@ modulate = Color(1, 0.9, 0.55, 1)
 outline_modulate = Color(0.18, 0.04, 0.16, 1)
 text = "FINISH"
 font_size = 64
+
+[node name="GoalTapePiece_2" parent="FinishLine" instance=ExtResource("15_tape_piece")]
+position = Vector3(0, 2.5, 1.1)
+rotation = Vector3(1.5707964, 0, 0)
+scale = Vector3(0.9, 0.9, 0.9)
 
 [node name="PauseMenu" parent="." instance=ExtResource("13_pause_menu")]
 
