@@ -4,6 +4,7 @@ extends Node3D
 @export var endless := false
 @export var building_offset := 0.0
 @export var accent := Color("ff43c8")
+@export var safety_street_y := -8.5
 var _batches: Dictionary = {}
 var _materials: Dictionary = {}
 var _districts: Array[Node3D] = []
@@ -203,7 +204,7 @@ func _solid_box(parent: Node3D, p: Vector3, size: Vector3, label: String) -> Sta
 
 func _build_safe_street() -> void:
 	var length := maxf(district_length + 240, 600)
-	var p := Vector3(0, -8.5 - global_position.y, -district_length * 0.5)
+	var p := Vector3(0, safety_street_y - global_position.y, -district_length * 0.5)
 	_street = _solid_box(self, p, Vector3(520, 1, length), "CityStreetSafety")
 	var mesh := MeshInstance3D.new()
 	var box := BoxMesh.new()
@@ -226,7 +227,7 @@ func _physics_process(_dt: float) -> void:
 	if _player.is_on_floor():
 		if _player.global_position.y > -4:
 			_last_safe_position = _player.global_position
-		elif _player.global_position.y < -6:
+		elif is_instance_valid(_street) and _player.global_position.y <= _street.global_position.y + 1.0:
 			# A missed jump lands on the city street instead of falling forever.
 			_player.global_position = _last_safe_position + Vector3.UP * 0.15
 			_player.velocity = Vector3.ZERO
