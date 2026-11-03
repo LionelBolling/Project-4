@@ -9,7 +9,7 @@ const RACE_FINISH_Z := -332.0
 const RACE_COUNTDOWN_SECONDS := 3.0
 const RACE_GO_LABEL_SECONDS := 0.7
 const WIN_RESULTS_SECONDS := 3.0
-const NEXT_SCENE := "res://scenes/bossfight.tscn"
+const NEXT_SCENE := "res://scenes/boss_cutscene_start.tscn"
 const PROGRESS_TRACK_X := 82.0
 const PROGRESS_TRACK_WIDTH := 278.0
 
