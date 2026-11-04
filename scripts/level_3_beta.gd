@@ -15,17 +15,7 @@ const PROGRESS_TRACK_WIDTH := 278.0
 
 @onready var player: MovementTestPlayer = $Player
 @onready var shadow: RaceOpponent = $Enemies/Shadow
-@onready var monsters: Array[MonsterQteTarget] = [
-	$DiscoBall,
-	$Speaker,
-	$Microphone,
-	$DiscoBall2,
-	$Speaker2,
-	$Microphone2,
-	$DiscoBall3,
-	$DiscoBall4,
-	$DiscoBall5
-]
+@onready var monsters: Array[MonsterQteTarget] = _collect_monsters()
 
 var phase := "APPROACH"
 var current_target: MonsterQteTarget
@@ -53,6 +43,14 @@ var player_won_race := false
 var _qte_success_effects: Array[Dictionary] = []
 var _projectile_hole_count := 0
 var _surface_replacements: Dictionary = {}
+
+func _collect_monsters() -> Array[MonsterQteTarget]:
+	var targets: Array[MonsterQteTarget] = []
+	for target_name in ["DiscoBall", "Speaker", "Microphone", "DiscoBall2", "Speaker2", "Microphone2", "DiscoBall3", "DiscoBall4", "DiscoBall5"]:
+		var target := get_node_or_null(NodePath(target_name)) as MonsterQteTarget
+		if target != null:
+			targets.append(target)
+	return targets
 
 func _ready() -> void:
 	_normal_time_scale = Engine.time_scale
