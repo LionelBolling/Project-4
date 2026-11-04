@@ -1,0 +1,128 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/boss_victory_portal.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://runner/runner.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://enemy_runner/enemy_runner.tscn" id="3_shadow"]
+[ext_resource type="PackedScene" path="res://runner/boombox.tscn" id="4_boombox"]
+[ext_resource type="PackedScene" path="res://assets/boss_cutscene_start/cutscene1.glb" id="5_tape"]
+[ext_resource type="Script" path="res://scripts/boss_victory_tape_prop.gd" id="6_tape_script"]
+
+[sub_resource type="Environment" id="StageEnvironment"]
+background_mode = 1
+background_color = Color(0.018, 0.012, 0.045, 1)
+ambient_light_source = 1
+ambient_light_color = Color(0.43, 0.54, 0.83, 1)
+ambient_light_energy = 0.65
+glow_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StagePaint"]
+albedo_color = Color(0.026, 0.02, 0.059, 1)
+metallic = 0.12
+roughness = 0.58
+
+[sub_resource type="PlaneMesh" id="StageFloor"]
+material = SubResource("StagePaint")
+size = Vector2(18, 15)
+
+[sub_resource type="StandardMaterial3D" id="PortalBlue"]
+albedo_color = Color(0.035, 0.5, 1, 1)
+shading_mode = 0
+emission_enabled = true
+emission = Color(0.05, 0.55, 1, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="StandardMaterial3D" id="PortalPink"]
+albedo_color = Color(1, 0.06, 0.48, 1)
+shading_mode = 0
+emission_enabled = true
+emission = Color(1, 0.08, 0.53, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="StandardMaterial3D" id="PortalCore"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.1, 0.04, 0.26, 0.84)
+emission_enabled = true
+emission = Color(0.12, 0.05, 0.35, 1)
+emission_energy_multiplier = 1.7
+
+[sub_resource type="TorusMesh" id="PortalRimOuter"]
+inner_radius = 1.68
+outer_radius = 1.88
+material = SubResource("PortalBlue")
+
+[sub_resource type="TorusMesh" id="PortalRimInner"]
+inner_radius = 1.46
+outer_radius = 1.57
+material = SubResource("PortalPink")
+
+[sub_resource type="PlaneMesh" id="PortalSurface"]
+material = SubResource("PortalCore")
+size = Vector2(2.95, 2.95)
+
+[node name="BossVictoryPortal" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("StageEnvironment")
+
+[node name="StageFloor" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.02, -1.5)
+mesh = SubResource("StageFloor")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.7, -0.5, 0)
+light_color = Color(0.7, 0.83, 1, 1)
+light_energy = 1.35
+
+[node name="PinkRim" type="OmniLight3D" parent="."]
+position = Vector3(3, 3, -2)
+light_color = Color(1, 0.22, 0.58, 1)
+light_energy = 1.2
+omni_range = 12.0
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector3(-1.4, 0.05, -0.25)
+rotation = Vector3(0, 0.22, 0)
+
+[node name="Shadow" parent="." instance=ExtResource("3_shadow")]
+position = Vector3(1.65, 0.28, -2.2)
+rotation = Vector3(1.5708, -0.2, 0)
+
+[node name="Boombox" parent="." instance=ExtResource("4_boombox")]
+position = Vector3(0.05, 0.78, -1.35)
+rotation = Vector3(0, 3.14159, 0)
+scale = Vector3(0.65, 0.65, 0.65)
+
+[node name="TapeSource" parent="." instance=ExtResource("5_tape")]
+position = Vector3(-0.9, 1.35, 0.3)
+rotation = Vector3(-1.5708, 0, 0)
+scale = Vector3(0.35, 0.35, 0.35)
+script = ExtResource("6_tape_script")
+
+[node name="Portal" type="Node3D" parent="."]
+position = Vector3(0, 2, -5)
+scale = Vector3(0.001, 0.001, 0.001)
+
+[node name="BlueRim" type="MeshInstance3D" parent="Portal"]
+rotation = Vector3(1.5708, 0, 0)
+mesh = SubResource("PortalRimOuter")
+
+[node name="PinkRim" type="MeshInstance3D" parent="Portal"]
+rotation = Vector3(1.5708, 0, 0)
+scale = Vector3(0.93, 0.93, 0.93)
+mesh = SubResource("PortalRimInner")
+
+[node name="PortalSurface" type="MeshInstance3D" parent="Portal"]
+rotation = Vector3(1.5708, 0, 0)
+mesh = SubResource("PortalSurface")
+
+[node name="PortalLight" type="OmniLight3D" parent="Portal"]
+light_color = Color(0.22, 0.62, 1, 1)
+light_energy = 0.0
+omni_range = 10.0
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(3, 2.2, 5)
+current = true
+fov = 58.0

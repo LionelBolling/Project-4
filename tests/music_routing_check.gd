@@ -9,6 +9,7 @@ const CASES := [
 	["res://scenes/level_3_beta.tscn", 1],
 	["res://scenes/boss_cutscene_start.tscn", 3],
 	["res://scenes/bossfight.tscn", 3],
+	["res://scenes/boss_victory_portal.tscn", 3],
 	["res://scenes/final_ending.tscn", 3],
 ]
 

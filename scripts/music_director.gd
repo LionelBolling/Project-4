@@ -32,7 +32,7 @@ func _on_scene_changed() -> void:
 			play_track(1)
 		"res://scenes/neon_city.tscn":
 			play_track(2 if scene.get("phase") == "EXPLORE" else 3)
-		"res://scenes/boss_cutscene_start.tscn", "res://scenes/bossfight.tscn", "res://scenes/final_ending.tscn":
+		"res://scenes/boss_cutscene_start.tscn", "res://scenes/bossfight.tscn", "res://scenes/boss_victory_portal.tscn", "res://scenes/final_ending.tscn":
 			play_track(3)
 		"res://scenes/bedroom_intro.tscn", "res://scenes/rewind.tscn":
 			play_track(0) # The bedroom boombox starts the music.
