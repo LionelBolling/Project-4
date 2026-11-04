@@ -45,7 +45,7 @@ func _build() -> void:
 	_build_safe_street()
 	if is_instance_valid(_player): _last_safe_position = _player.global_position
 	for camera in get_parent().find_children("*", "Camera3D", true, false):
-		if camera.get_viewport() == get_viewport(): camera.far = maxf(camera.far, 900.0)
+		if camera.get_viewport() == get_viewport(): camera.far = maxf(camera.far, 480.0)
 
 func _material(color: Color, luminous: bool) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
@@ -78,6 +78,8 @@ func _flush(parent: Node3D) -> void:
 		visual.multimesh = instances
 		visual.material_override = _materials[kind]
 		visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		if kind in ["cyan", "pink", "gold", "grid"]:
+			visual.visibility_range_end = 320.0
 		parent.add_child(visual)
 	_batches.clear()
 
@@ -105,13 +107,13 @@ func _build_district(district: Node3D, index: int, rng: RandomNumberGenerator) -
 				for edge in [-1.0, 1.0]:
 					_box(neon, Vector3(x + edge * width / 2, height / 2 - 44, z + depth / 2 + 0.06), Vector3(0.14, height, 0.14))
 				_box(neon, Vector3(x, top + 1.1, z), Vector3(width + 0.8, 0.15, depth + 0.8))
-				for floor_index in range(2, int(height / 3.5)):
+				for floor_index in range(2, int(height / 3.5), 2):
 					for column in range(4):
 						if rng.randf() < 0.25: continue
 						var wx := x - width * 0.36 + column * width * 0.24
 						_box(neon if floor_index % 4 else "gold", Vector3(wx, -44 + floor_index * 3.5, z + depth / 2 + 0.08), Vector3(width * 0.12, 0.65, 0.1))
 				# Inward-facing facade lights stay visible from gameplay cameras.
-				for floor_index in range(3, int(height / 4.0)):
+				for floor_index in range(3, int(height / 4.0), 2):
 					_box(neon, Vector3(x - side * (width / 2 + 0.08), -44 + floor_index * 4, z), Vector3(0.1, 0.4, depth * 0.7))
 				if slot == 1:
 					_box(neon, Vector3(x, top + 5, z), Vector3(0.18, 8, 0.18))

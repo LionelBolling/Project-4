@@ -35,7 +35,7 @@ func _ready() -> void:
 	_spawn_piece()
 	cinematic = Camera3D.new()
 	cinematic.fov = 76
-	cinematic.far = 1000
+	cinematic.far = 480
 	add_child(cinematic)
 	_set_control(false)
 	if Progress.ejected:
@@ -123,12 +123,14 @@ func _build_city() -> void:
 		for z in range(-290, 26, 20):
 			Props.box(self, Vector3(side * 9, 2.8, z), Vector3(0.12, 5.6, 0.12), Color("243452"))
 			Props.box(self, Vector3(side * 9, 5.6, z), Vector3(1.8, 0.1, 0.2), Color("65e8f5"), 1)
-			var light := OmniLight3D.new()
-			light.position = Vector3(side * 9, 4.8, z)
-			light.light_color = Color("63a5e3")
-			light.light_energy = 0.7
-			light.omni_range = 14
-			add_child(light)
+			# The glowing bars provide the repeated lamps; only a few need real light.
+			if (z + 290) % 80 == 0:
+				var light := OmniLight3D.new()
+				light.position = Vector3(side * 9, 4.8, z)
+				light.light_color = Color("63a5e3")
+				light.light_energy = 0.7
+				light.omni_range = 14
+				add_child(light)
 	for z in range(-295, 30, 7):
 		Props.box(self, Vector3(0, 0.04, z), Vector3(0.12, 0.03, 2.5), Color("ffd27d"), 0.6)
 	for i in range(24):
@@ -208,9 +210,9 @@ func _build_home_window() -> void:
 	# The final tape shows the bedroom itself: the captive is running for home.
 	var view := SubViewport.new()
 	view.name = "HomeWindow"
-	view.size = Vector2i(512, 288)
+	view.size = Vector2i(384, 216)
 	view.own_world_3d = true
-	view.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	view.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
 	add_child(view)
 	view.add_child(preload("res://scripts/title_bedroom.gd").new())
 	var window := MeshInstance3D.new()
@@ -426,9 +428,31 @@ func _build_outer_blocks() -> void:
 				if reserved: continue
 				var height := 8.0 + (row + column) % 4 * 3.5
 				var block := _solid(p + Vector3.UP * height * 0.5, Vector3(18, height, 22))
+				var strips: Array[Transform3D] = []
 				for level in range(2, int(height), 3):
-					Props.box(block, Vector3(0, level - height * 0.5, 11.02), Vector3(15, 0.35, 0.04), Color("39b6d7") if side < 0 else Color("c646b2"), 0.6)
+					strips.append(Transform3D(Basis.from_scale(Vector3(15, 0.35, 0.04)), Vector3(0, level - height * 0.5, 11.02)))
+				_add_facade_strips(block, strips, Color("39b6d7") if side < 0 else Color("c646b2"))
 				Props.box(block, Vector3(0, height * 0.5 + 0.04, 0), Vector3(18.1, 0.08, 22.1), Color("315473"))
+
+func _add_facade_strips(parent: Node3D, strips: Array[Transform3D], color: Color) -> void:
+	if strips.is_empty(): return
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3.ONE
+	var batch := MultiMesh.new()
+	batch.transform_format = MultiMesh.TRANSFORM_3D
+	batch.mesh = mesh
+	batch.instance_count = strips.size()
+	for i in range(strips.size()): batch.set_instance_transform(i, strips[i])
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = color
+	var visual := MultiMeshInstance3D.new()
+	visual.name = "FacadeStrips"
+	visual.multimesh = batch
+	visual.material_override = material
+	visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	visual.visibility_range_end = 180.0
+	parent.add_child(visual)
 
 func _begin_ejection() -> void:
 	Progress.ejected = false
@@ -531,12 +555,16 @@ func _build_city_boundaries() -> void:
 			var height := 44.0 + (i % 4) * 9
 			var tower := _solid(Vector3(side * 130, height * 0.5, 19 - i * 22), Vector3(20, height, 22), Color("101a30"))
 			tower.name = "CityBoundarySide_%d_%d" % [side, i]
+			var strips: Array[Transform3D] = []
 			for floor_y in range(3, int(height), 5):
-				Props.box(tower, Vector3(-side * 10.05, floor_y - height * 0.5, 0), Vector3(0.08, 0.45, 18), Color("34c6de") if side < 0 else Color("da4cae"), 0.8)
+				strips.append(Transform3D(Basis.from_scale(Vector3(0.08, 0.45, 18)), Vector3(-side * 10.05, floor_y - height * 0.5, 0)))
+			_add_facade_strips(tower, strips, Color("34c6de") if side < 0 else Color("da4cae"))
 	for end in [-310, 40]:
 		for i in range(12):
 			var height := 46.0 + (i % 3) * 11
 			var tower := _solid(Vector3(-110 + i * 20, height * 0.5, end), Vector3(20, height, 20), Color("111d35"))
 			tower.name = "CityBoundaryEnd_%d_%d" % [end, i]
+			var strips: Array[Transform3D] = []
 			for floor_y in range(3, int(height), 5):
-				Props.box(tower, Vector3(0, floor_y - height * 0.5, 10.05 if end < 0 else -10.05), Vector3(17, 0.45, 0.08), Color("6779ed"), 0.8)
+				strips.append(Transform3D(Basis.from_scale(Vector3(17, 0.45, 0.08)), Vector3(0, floor_y - height * 0.5, 10.05 if end < 0 else -10.05)))
+			_add_facade_strips(tower, strips, Color("6779ed"))
