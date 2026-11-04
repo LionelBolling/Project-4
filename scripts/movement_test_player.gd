@@ -499,6 +499,20 @@ func apply_story_qte(success: bool) -> void:
 		velocity.x *= 0.85
 		velocity.z *= 0.85
 
+func cancel_dive_for_qte() -> void:
+	if state not in ["DIVING", "DIVE_LANDING"]:
+		return
+	dive_timer = 0.0
+	dive_landing_timer = 0.0
+	dive_left_ground = false
+	dive_repeat_speed_bonus = 0.0
+	jump_pending = false
+	state = "IDLE" if is_on_floor() else "FALLING"
+	if _can_restore_capsule():
+		_set_capsule(false)
+	visual.position = Vector3.ZERO
+	visual.rotation.x = 0.0
+
 func _begin_dive(direction: Vector3) -> void:
 	glide_animation_active = false
 	jump_pending = false

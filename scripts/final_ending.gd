@@ -19,6 +19,7 @@ const City = preload("res://scripts/ending_city.gd")
 var ending_city: Node3D
 var anger_started := false
 var walk_started := false
+var good_music_resumed := false
 
 func _ready() -> void:
 	_build_ui()
@@ -193,6 +194,7 @@ func _process(dt: float) -> void:
 			boombox.hide()
 			if not impact_played:
 				impact_played = true
+				MusicDirector.play_track(0)
 				_play_effect(false)
 			for i in range(debris.size()):
 				var shard := debris[i]
@@ -294,6 +296,9 @@ func _process(dt: float) -> void:
 					_reach_for_exit(captive_body)
 				_shot(prison.position + Vector3(1.8, 1.8, -4.7), prison.position + Vector3(0, 1.35, -1.7))
 		if t >= 29:
+			if release_boy and not good_music_resumed:
+				good_music_resumed = true
+				MusicDirector.play_track(3)
 			var walking_body := neon_shadow if release_boy else captive_body
 			walking_body.skeleton.clear_bones_global_pose_override()
 			walking_body.rotation.y = lerp_angle(PI, 0, smoothstep(29, 31, t))

@@ -29,6 +29,7 @@ func run() -> void:
 			assert(ending.static_material.get_shader_parameter("strength") == 0.0, "Escape does not imply a new body swap")
 		if time == 7.2:
 			assert(ending.prison.visible and ending.prison_portal.scale.length() < 0.01, "Smash immediately seals the portal")
+			assert(root.get_node("MusicDirector").current_track == 0, "Boombox smash silences the music")
 		if time == 26.0:
 			assert(ending.captive_body.visible and ending.neon_shadow.visible, "The neon body gradually morphs back into the boy")
 			assert(ending.ending_city.rings[0].visible)
@@ -51,6 +52,7 @@ func run() -> void:
 	assert(ending.captive_body.position.z > 0)
 	assert(not ending.neon_shadow.visible and ending.captive_body.visible, "The restored boy walks into the city")
 	assert(ending.trapped_player.visible, "The boy remains recognizable as he walks away")
+	assert(root.get_node("MusicDirector").current_track == 0, "Bad ending stays silent")
 	ending.phase_time = 42.1
 	ending._process(0.016)
 	assert(ending.ending_card.text == "Bad Ending" and ending.ending_card.visible)
@@ -70,6 +72,7 @@ func run() -> void:
 			assert(good.revealed_body.visible and not good.bedroom_model.visible)
 		if time == 7.2:
 			assert(good.prison_portal.scale.length() < 0.01)
+			assert(root.get_node("MusicDirector").current_track == 0)
 		if time == 19.0 or time == 21.0:
 			assert(good.bedroom_model.visible and not good.revealed_body.visible)
 			assert(not good.laugh_played)
@@ -84,6 +87,7 @@ func run() -> void:
 			assert(not good.captive_body.visible and good.neon_shadow.visible)
 		if time == 34.0:
 			assert(good.neon_shadow.position.z > 0)
+			assert(root.get_node("MusicDirector").current_track == 3, "Good ending restores music in the world")
 	assert(good.ending_card.text == "Good Ending" and good.ending_card.visible)
 	print("FINAL ENDING CHECK PASSED")
 	quit()
