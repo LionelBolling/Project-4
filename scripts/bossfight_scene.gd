@@ -185,6 +185,7 @@ func _physics_process(delta: float) -> void:
 func _begin_chase_cycle() -> void:
 	phase = "CHASE"
 	chase_timer = CHASE_SECONDS
+	player.cancel_dive_for_qte()
 	player.set_physics_process(true)
 	var side := -1.0 if _rng.randf() < 0.5 else 1.0
 	rival.global_position = Vector3(clampf(player.global_position.x + side * 2.2, -2.8, 2.8), 0.05, player.global_position.z - SHADOW_STOP_DISTANCE)
@@ -236,6 +237,7 @@ func _begin_wait_for_approach() -> void:
 func _begin_qte() -> void:
 	phase = "QTE"
 	qte_timer = QTE_SECONDS
+	player.cancel_dive_for_qte()
 	_player_checkpoint = player.global_position
 	_player_checkpoint.y = 0.05
 	var keys := ["Q", "E", "R", "F"]
