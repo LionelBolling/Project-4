@@ -59,6 +59,7 @@ func _tick_world_reveal(delta: float) -> void:
 	reveal_camera.look_at(focus_keys[segment].lerp(focus_keys[segment + 1], blend))
 	reveal_camera.fov = lerpf(72.0, player.camera.fov, smoothstep(6.0, 9.0, reveal_time))
 	if reveal_time >= WORLD_REVEAL_SECONDS:
+		MusicDirector.play_track(1)
 		player.camera.make_current()
 		player.set_process_unhandled_input(true)
 		reveal_camera.queue_free()

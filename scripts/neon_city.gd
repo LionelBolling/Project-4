@@ -20,8 +20,6 @@ var shadow_clip := ""
 var player_clip := ""
 var launch_origin := Vector3.ZERO
 var launch_scale := Vector3.ONE
-var sound: AudioStreamPlayer
-var audio_clock := 0.0
 var direction_arrow: Polygon2D
 var shadow_state := "WAITING"
 var shadow_route: Array[Vector3] = []
@@ -33,7 +31,6 @@ func _ready() -> void:
 	Progress.active = true
 	_build_city()
 	_build_ui()
-	_build_audio()
 	_build_shove()
 	_spawn_piece()
 	cinematic = Camera3D.new()
@@ -296,6 +293,7 @@ func _tick_arrival() -> void:
 	if t >= 20: _enter_exploration()
 
 func _enter_exploration() -> void:
+	MusicDirector.play_track(2)
 	Progress.arrived = true
 	phase = "EXPLORE"
 	time = 0
@@ -315,6 +313,7 @@ func _can_interact() -> bool:
 
 func _interact() -> void:
 	if not _can_interact(): return
+	MusicDirector.play_track(3)
 	phase = "VANISH"
 	time = 0
 	launch_origin = player.visual.position
@@ -344,7 +343,6 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(dt: float) -> void:
 	time += dt
 	world_time += dt
-	_fill_audio()
 	_update_direction_arrow()
 	if phase in ["ARRIVAL", "EXPLORE"]: _tick_shadow(dt)
 	for i in range(cars.size()):
@@ -361,26 +359,6 @@ func _process(dt: float) -> void:
 		_update_marker()
 		marker.text = "●".repeat(Progress.piece_index + 1)
 
-func _build_audio() -> void:
-	sound = AudioStreamPlayer.new()
-	var stream := AudioStreamGenerator.new()
-	stream.mix_rate = 22050
-	stream.buffer_length = 0.15
-	sound.stream = stream
-	sound.volume_db = -25
-	add_child(sound)
-	sound.play()
-
-func _fill_audio() -> void:
-	var playback := sound.get_stream_playback() as AudioStreamGeneratorPlayback
-	if playback == null: return
-	for i in range(playback.get_frames_available()):
-		audio_clock += 1.0 / 22050
-		var pulse := fmod(audio_clock * 1.8, 1.0)
-		var sample := sin(audio_clock * TAU * 55) * 0.08 + sin(pulse * 70) * exp(-pulse * 12) * 0.12
-		if phase == "ARRIVAL" and time >= 12.45 and time < 12.75:
-			sample += sin(audio_clock * TAU * 43) * (1 - (time - 12.45) / 0.3) * 0.7
-		playback.push_frame(Vector2.ONE * sample)
 
 func _update_marker() -> void:
 	marker_ui.visible = phase == "EXPLORE" and player.position.distance_to(piece_home) < 24

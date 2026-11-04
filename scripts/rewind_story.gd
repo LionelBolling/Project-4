@@ -23,9 +23,6 @@ var round_number := 0
 var phase_time := 0.0
 var yaw := 0.0
 var pitch := 0.0
-var music: AudioStreamPlayer
-var music_playback: AudioStreamGeneratorPlayback
-var audio_phase := 0.0
 var muted := false
 var home_returned := false
 var exit_box: Node3D
@@ -48,7 +45,6 @@ var mirror_used := false
 func _ready() -> void:
 	_build_ui()
 	_build_room()
-	_build_audio()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _build_ui() -> void:
@@ -281,6 +277,7 @@ func _interact() -> void:
 		message_time = 0
 		boombox_on = true
 		music_fx.playing = true
+		MusicDirector.play_boombox()
 		prisoner.show()
 		_set_phase("tape_glimpse")
 	elif _can_touch_bed():
@@ -344,7 +341,6 @@ func _process(dt: float) -> void:
 	phase_time += dt
 	message_time = maxf(0, message_time - dt)
 	if message_time == 0: message.text = ""
-	_fill_audio()
 	match phase:
 		"room_entry": _tick_room_entry(dt)
 		"sleep": _tick_sleep()
@@ -532,27 +528,3 @@ func _tick_between(dt: float) -> void:
 
 func _tick_ending(_dt: float) -> void:
 	get_tree().change_scene_to_file("res://scenes/final_ending.tscn")
-
-func _build_audio() -> void:
-	music = AudioStreamPlayer.new()
-	add_child(music)
-	var stream := AudioStreamGenerator.new()
-	stream.mix_rate = 22050
-	stream.buffer_length = 0.15
-	music.stream = stream
-	music.volume_db = -22
-	music.play()
-	music_playback = music.get_stream_playback()
-
-func _fill_audio() -> void:
-	if music_playback == null: return
-	var notes := [110.0, 130.81, 164.81, 146.83]
-	for i in range(music_playback.get_frames_available()):
-		audio_phase += 1.0 / 22050
-		var beat := fmod(audio_phase * 2, 1.0)
-		var frequency: float = notes[int(audio_phase / 2) % 4]
-		if phase in ["portal", "ending"]: frequency *= 1 + sin(audio_phase * 7) * 0.09
-		var sample := sin(audio_phase * frequency * TAU) * 0.2 + sin(beat * 90) * exp(-beat * 14) * 0.4
-		if not boombox_on: sample = 0.0
-		if phase == "sleep": sample *= lerpf(1.0, 0.15, smoothstep(4.6, 5.5, phase_time))
-		music_playback.push_frame(Vector2.ONE * sample)
