@@ -32,7 +32,12 @@ func _check() -> void:
 	boss._process(boss.RESULTS_PAUSE + 0.1)
 	await process_frame
 	await process_frame
-	assert(current_scene.scene_file_path == "res://scenes/final_ending.tscn", "Boss win opens the ending")
+	assert(current_scene.scene_file_path == "res://scenes/boss_victory_portal.tscn", "Boss win opens the tape and portal cutscene")
+	current_scene.set_process(false)
+	current_scene._process(8.4)
+	await process_frame
+	await process_frame
+	assert(current_scene.scene_file_path == "res://scenes/final_ending.tscn", "Portal cutscene opens the ending")
 	assert(current_scene.phase == "choice", "Ending choice is available")
 	var music := root.get_node("MusicDirector")
 	assert(music.current_track == 3)

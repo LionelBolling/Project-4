@@ -14,7 +14,7 @@ const APPROACH_DISTANCE := 8.0
 const MIN_SHADOW_LEAD := 12.0
 const MAX_SHADOW_LEAD := 20.0
 const RESULTS_PAUSE := 3.0
-const NEXT_SCENE := "res://scenes/final_ending.tscn"
+const NEXT_SCENE := "res://scenes/boss_victory_portal.tscn"
 
 @onready var player: MovementTestPlayer = $Player
 @onready var rival: RaceOpponent = $Rival
