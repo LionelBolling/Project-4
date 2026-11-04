@@ -2,7 +2,7 @@ extends Node3D
 ## Playable city hub; the level controller owns all parkour movement.
 const Props = preload("res://scripts/story_props.gd")
 const Progress = preload("res://scripts/city_progress.gd")
-const PIECES := [Vector3(54, 4.4, -44), Vector3(-68, 6.4, -92), Vector3(82, 8.4, -148), Vector3(-80, 10.4, -204), Vector3(64, 12.4, -260)]
+const PIECES := [Vector3(54, 4.4, -44), Vector3(-68, 6.4, -92), Vector3(82, 8.4, -148), Vector3(-80, 10.4, -204), Vector3(-64, 12.4, -260), Vector3(64, 12.4, -260)]
 @onready var player: MovementTestPlayer = $Player
 @onready var shadow: Node3D = $Shadow
 var phase := "ARRIVAL"
@@ -156,7 +156,7 @@ func _build_city() -> void:
 		for j in range(3):
 			_solid(Vector3(side * (12 + j * 2.5), 0.4 + j * 0.25, target.z + 16), Vector3(1.4, 0.8 + j * 0.5, 2.5))
 	# Low rails and rooftop bridges give multiple routes through the hub.
-	for i in range(4):
+	for i in range(PIECES.size() - 1):
 		var a: Vector3 = PIECES[i]
 		var b: Vector3 = PIECES[i + 1]
 		var z := (a.z + b.z) * 0.5

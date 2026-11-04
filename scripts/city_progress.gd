@@ -1,7 +1,7 @@
 extends RefCounted
 ## Session progression shared by the city and existing race scenes.
 const HUB := "res://scenes/neon_city.tscn"
-const LEVELS := ["res://scenes/level_0.tscn", "res://scenes/level_1.tscn", "res://scenes/Level2.tscn", "res://scenes/level_3_beta.tscn", "res://scenes/boss_cutscene_start.tscn"]
+const LEVELS := ["res://scenes/level_0.tscn", "res://scenes/level_1.tscn", "res://scenes/Level2.tscn", "res://scenes/level_3_beta.tscn", "res://scenes/level_4.tscn", "res://scenes/boss_cutscene_start.tscn"]
 const MAX_HEALTH := 100
 const FAILURE_DAMAGE := 25
 static var active := false
