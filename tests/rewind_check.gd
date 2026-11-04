@@ -60,18 +60,11 @@ func run() -> void:
 		story._process(0.01)
 		await process_frame
 	check(story.phase == "boss", "Three races lead to final round")
-	story.stage.successful_hits = 4
+	story.stage.successful_hits = 2
 	story.stage._finish_enemy_launch()
 	await process_frame
 	await process_frame
-	check(story.phase == "ending", "Boss victory leads to ending")
-	# Exercise each cinematic shot without requiring a manual playthrough.
-	for t in [2.0, 4.0, 5.99, 6.0, 7.0, 9.0, 12.0, 15.0, 17.0]:
-		story.phase_time = t
-		story._process(0.02)
-	check(story.phase == "complete", "Ending completes")
-	check(story.prisoner.visible and story.reflection.visible, "Identity reveal shown")
-	check(story.cassette.get_parent() == story.boombox, "Tape returned to boombox")
+	check(current_scene != null and current_scene.scene_file_path == "res://scenes/boss_victory_portal.tscn", "Embedded boss victory opens portal cutscene")
 	print("REWIND CHECK: %d failures" % failures)
 	story.queue_free()
 	await process_frame

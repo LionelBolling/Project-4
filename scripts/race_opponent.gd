@@ -55,6 +55,7 @@ const BlackProjectileScript = preload("res://scripts/rival_black_projectile.gd")
 @export_range(0.0, 8.0, 0.1) var wall_jump_speed_bonus := 3.5
 @export_range(0.1, 3.0, 0.1) var wall_regrab_cooldown := 1.1
 @export_range(48, 300, 1) var entrail_max_points := 160
+@export_range(0.0, 10.0, 0.1) var entrail_lifetime_seconds := 0.0
 
 @onready var visual: Node3D = $EnemyRunner
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
@@ -108,6 +109,8 @@ var _glide_previous_distance := INF
 var _air_time := 0.0
 var _entrail_meshes: Array[ImmediateMesh] = []
 var _entrail_paths: Array[PackedVector3Array] = []
+var _entrail_birth_times: Array[PackedFloat32Array] = []
+var _entrail_clock := 0.0
 var _entrail_materials: Array[StandardMaterial3D] = []
 var _entrail_widths := [0.055, 0.075, 0.045]
 
@@ -155,9 +158,8 @@ func reset_for_race() -> void:
 	_glide_previous_distance = INF
 	_air_time = 0.0
 	_set_dive_collision(false, true)
-	for index in range(_entrail_paths.size()):
-		_entrail_paths[index] = PackedVector3Array()
-		_entrail_meshes[index].clear_surfaces()
+	_entrail_clock = 0.0
+	clear_entrail_trails()
 	_wall_normal = Vector3.ZERO
 	_wall_direction = Vector3.FORWARD
 	_wall_side = 0
@@ -535,6 +537,29 @@ func _create_entrail_trails() -> void:
 		_entrail_meshes.append(trail_mesh)
 		_entrail_materials.append(trail_material)
 		_entrail_paths.append(PackedVector3Array())
+		_entrail_birth_times.append(PackedFloat32Array())
+
+func clear_entrail_trails() -> void:
+	for index in range(_entrail_paths.size()):
+		_entrail_paths[index] = PackedVector3Array()
+		_entrail_birth_times[index] = PackedFloat32Array()
+		_entrail_meshes[index].clear_surfaces()
+
+func expire_entrail_trails(delta: float) -> void:
+	if entrail_lifetime_seconds <= 0.0: return
+	_entrail_clock += delta
+	for index in range(_entrail_paths.size()):
+		var points := _entrail_paths[index]
+		var birth_times := _entrail_birth_times[index]
+		var changed := false
+		while not birth_times.is_empty() and _entrail_clock - birth_times[0] >= entrail_lifetime_seconds:
+			birth_times.remove_at(0)
+			points.remove_at(0)
+			changed = true
+		if changed:
+			_entrail_paths[index] = points
+			_entrail_birth_times[index] = birth_times
+			_draw_entrail_ribbon(_entrail_meshes[index], points, _entrail_materials[index], _entrail_widths[index])
 
 func _update_entrail_trails() -> void:
 	if _entrail_meshes.is_empty():
@@ -551,15 +576,23 @@ func _update_entrail_trails() -> void:
 	for index in range(_entrail_paths.size()):
 		var origin: Vector3 = base + side * side_offsets[index] + Vector3.UP * height_offsets[index]
 		var points := _entrail_paths[index]
+		var birth_times := _entrail_birth_times[index]
+		if entrail_lifetime_seconds > 0.0 and not points.is_empty() and points[points.size() - 1].distance_to(origin) > 3.0:
+			points.clear()
+			birth_times.clear()
 		if points.is_empty():
 			for step in range(9):
 				var progress := float(step) / 8.0
 				points.append(origin - motion * 0.5 * (1.0 - progress))
+				birth_times.append(_entrail_clock)
 		elif points[points.size() - 1].distance_to(origin) > 0.055:
 			points.append(origin)
+			birth_times.append(_entrail_clock)
 		while points.size() > entrail_max_points:
 			points.remove_at(0)
+			birth_times.remove_at(0)
 		_entrail_paths[index] = points
+		_entrail_birth_times[index] = birth_times
 		_draw_entrail_ribbon(_entrail_meshes[index], points, _entrail_materials[index], _entrail_widths[index])
 
 func _draw_entrail_ribbon(ribbon: ImmediateMesh, points: PackedVector3Array, material: StandardMaterial3D, width: float) -> void:
