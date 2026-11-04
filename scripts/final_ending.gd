@@ -11,11 +11,19 @@ var effects: AudioStreamPlayer
 var revealed_body: Node3D
 var laugh_played := false
 var trapped_player: Node3D
+var release_boy := false
+var choice_panel: Control
+var ending_card: Label
+var captive_body: Node3D
+const City = preload("res://scripts/ending_city.gd")
+var ending_city: Node3D
+var anger_started := false
+var walk_started := false
 
 func _ready() -> void:
 	_build_ui()
 	_build_room()
-	phase = "finale"
+	phase = "choice"
 	phase_time = 0
 	controls.text = ""
 	boombox_on = false
@@ -27,6 +35,60 @@ func _ready() -> void:
 	effects = AudioStreamPlayer.new()
 	add_child(effects)
 	_build_final_props()
+	_build_choice()
+	ending_city = City.new()
+	prison.add_child(ending_city)
+	room.hide()
+	prison.show()
+	_shot(prison.position + Vector3(5, 3, 6), prison.position + Vector3(0, 1.2, -1))
+
+func _build_choice() -> void:
+	captive_body = preload("res://runner/runner.tscn").instantiate()
+	prison.add_child(captive_body)
+	preload("res://scripts/bedroom_outfit.gd").apply(captive_body)
+	captive_body.position = Vector3(1.7, 0.05, 0)
+	captive_body.call("play_animation", &"Idle", 0.0)
+	choice_panel = VBoxContainer.new()
+	title.get_parent().add_child(choice_panel)
+	choice_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	choice_panel.offset_left = -340
+	choice_panel.offset_right = 340
+	choice_panel.offset_top = -230
+	choice_panel.offset_bottom = -40
+	var prompt := Label.new()
+	prompt.text = "Only one can return. Who goes through?"
+	prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	prompt.add_theme_font_size_override("font_size", 28)
+	choice_panel.add_child(prompt)
+	for option in [false, true]:
+		var button := Button.new()
+		button.text = "Let the shadow go" if option else "Go through yourself"
+		button.custom_minimum_size = Vector2(680, 60)
+		button.add_theme_font_size_override("font_size", 26)
+		button.pressed.connect(_choose_ending.bind(option))
+		choice_panel.add_child(button)
+	ending_card = Label.new()
+	title.get_parent().add_child(ending_card)
+	ending_card.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	ending_card.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	ending_card.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	ending_card.add_theme_font_size_override("font_size", 64)
+	ending_card.add_theme_color_override("font_outline_color", Color("050a1a"))
+	ending_card.add_theme_constant_override("outline_size", 12)
+	ending_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ending_card.hide()
+
+func _choose_ending(let_boy_go: bool) -> void:
+	if phase != "choice": return
+	release_boy = let_boy_go
+	phase = "finale"
+	phase_time = 0.0
+	choice_panel.hide()
+	prison.hide()
+	room.show()
+	captive_body.position = Vector3(0, 0.05, 0)
+	captive_body.visible = release_boy
+	neon_shadow.visible = not release_boy
 
 func _input(_event: InputEvent) -> void:
 	pass
@@ -85,7 +147,14 @@ func _shot(position: Vector3, target: Vector3) -> void:
 	camera.look_at(target)
 
 func _process(dt: float) -> void:
-	if phase == "complete": return
+	if phase in ["complete", "choice"]: return
+	if phase == "ending_card":
+		phase_time += dt
+		if phase_time >= 4.0:
+			phase = "complete"
+			preload("res://scripts/city_progress.gd").reset()
+			get_tree().change_scene_to_file("res://scenes/title_screen.tscn")
+		return
 	phase_time += dt
 	var t := phase_time
 	if t < 3.2:
@@ -97,7 +166,7 @@ func _process(dt: float) -> void:
 		# The doorway stays alive until the boombox is destroyed.
 		portal.scale = Vector3.ONE * 0.65
 		# This is the same shadow leaving the tape, not an exchange of bodies.
-		var exposed := t >= 0.45 and t < 0.75
+		var exposed := release_boy or (t >= 0.45 and t < 0.75)
 		static_material.set_shader_parameter("strength", 0.0)
 		bedroom_model.visible = not exposed
 		revealed_body.visible = exposed
@@ -106,13 +175,14 @@ func _process(dt: float) -> void:
 		_shot(Vector3(5, 2.7, -2.5), walker.position + Vector3.UP)
 	elif t < 6:
 		portal.show()
-		prisoner.show()
-		bedroom_model.show()
-		revealed_body.hide()
+		prisoner.visible = not release_boy
+		bedroom_model.visible = not release_boy
+		revealed_body.visible = release_boy
 		revealed_body.scale = Vector3.ONE
 		var p := smoothstep(3.2, 4.5, t)
 		walker.position = Vector3(1.4, 0.05, -4.7).lerp(Vector3(1.4, 0.05, -6.1), p)
 		bedroom_model.rotation.y = PI
+		revealed_body.rotation.y = PI
 		boombox.position = Vector3(1.4, 1.5, -7.5).lerp(Vector3(1.4, 2.5, -6.5), smoothstep(4.4, 5.5, t))
 		_shot(Vector3(4.7, 2.8, -4.1), Vector3(1.4, 1.7, -6.5))
 	elif t < 8:
@@ -137,10 +207,15 @@ func _process(dt: float) -> void:
 			prison.show()
 			prison_portal.scale = Vector3.ONE * (1 - smoothstep(6.6, 7.15, t))
 			_shot(prison.position + Vector3(3.3, 2.6, 4.5), prison.position + Vector3(0, 1.3, -1.7))
+			camera.position += Vector3(sin(t * 97), cos(t * 83), 0) * 0.12 * (1 - smoothstep(6.6, 7.3, t))
 	elif t < 10.5:
 		prison.hide()
 		room.show()
 		portal.hide()
+		if release_boy:
+			bedroom_model.show()
+			revealed_body.hide()
+			static_material.set_shader_parameter("strength", sin(smoothstep(8, 9, t) * PI))
 		if not sigh_played:
 			sigh_played = true
 			_play_effect(true)
@@ -163,51 +238,92 @@ func _process(dt: float) -> void:
 		bedroom_model.rotation = Vector3(-PI / 2 * settle, 0, 0)
 		_shot(Vector3(-1.4, 4.8, 2.2), Vector3(-5, 1.4, -1.2))
 		# One short static transition replaces the sleeper with the actual neon rig.
-		var revealing := t >= 18.3 and t < 18.7
+		var revealing := not release_boy and t >= 18.3 and t < 18.7
 		static_material.set_shader_parameter("strength", sin(clampf((t - 18.3) / 0.4, 0, 1) * PI) if revealing else 0.0)
-		var transformed := t >= 18.5 and t < 20.5
+		var transformed := not release_boy and t >= 18.5 and t < 20.5
 		bedroom_model.visible = not transformed
 		revealed_body.visible = transformed
 		revealed_body.rotation = bedroom_model.rotation
-		if t >= 20.5 and not laugh_played:
+		if not release_boy and t >= 20.5 and not laugh_played:
 			laugh_played = true
 			bedroom_model.call("set_expression", "smile")
 			_play_laugh()
-		if t >= 20.5 and t < 22.0:
+		if not release_boy and t >= 20.5 and t < 22.0:
 			bedroom_model.rotation.x += sin((t - 20.5) * 23) * 0.018 * (1 - (t - 20.5) / 1.8)
 		fade.color.a = smoothstep(22, 23, t)
-	elif t < 38:
+	elif t < 42:
 		room.hide()
 		prison.show()
 		fade.color.a = 1 - smoothstep(23, 24, t)
-		# The final shot returns to the doorway already sealed by the smash.
 		prison_portal.scale = Vector3.ZERO
-		# The same captive from the opening is left on the other side.
-		neon_shadow.position.z = lerpf(0, -1.7, smoothstep(23, 25, t)) if t < 30 else neon_shadow.position.z
-		if t < 30:
-			# The original bedroom outfit identifies who really lost their life.
-			_shot(prison.position + Vector3(3.3, 2.6, 4.5), prison.position + Vector3(0, 1.3, -1.7))
-			if t >= 25 and t < 28:
-				_reach_for_exit(neon_shadow)
+		if release_boy:
+			var morph := smoothstep(24.5, 28.5, t)
+			captive_body.visible = morph < 1.0
+			neon_shadow.visible = morph > 0.0
+			City.body_opacity(captive_body, 1.0 - morph)
+			City.body_opacity(neon_shadow, morph)
+			captive_body.position = Vector3(0, 0.05, -1.7)
+			captive_body.rotation.y = PI
+			neon_shadow.position = captive_body.position
+			ending_city.phase_effect(morph, captive_body.position)
+			if t < 29:
+				var orbit := smoothstep(23, 29, t)
+				_shot(prison.position + Vector3(3.5 - orbit * 5, 2.2, 2.0), prison.position + Vector3(0, 1.2, -1.7))
 		else:
-			trapped_player.skeleton.clear_bones_global_pose_override()
-			neon_shadow.skeleton.clear_bones_global_pose_override()
-			neon_shadow.rotation.y = lerp_angle(PI, 0, smoothstep(30, 32, t))
-			neon_shadow.position.z = maxf(0, t - 32) * 0.55
-			neon_shadow.rotation.x = 0.12
-			var walking_body := neon_shadow
-			walking_body.call("play_animation", &"Run" if t > 32 else &"Idle", 0.4)
-			walking_body.animation_player.speed_scale = 0.25
-			_shot(prison.position + Vector3(2.8, 2.6, -5), prison.position + neon_shadow.position + Vector3.UP)
-		fade.color.a = maxf(fade.color.a, smoothstep(35.5, 38, t))
+			neon_shadow.position = Vector3(0, 0.05, -1.7)
+			captive_body.position = neon_shadow.position
+			captive_body.rotation = neon_shadow.rotation
+			var morph := smoothstep(24.5, 28.5, t)
+			neon_shadow.visible = morph < 1.0
+			captive_body.visible = morph > 0.0
+			City.body_opacity(neon_shadow, 1.0 - morph)
+			City.body_opacity(captive_body, morph)
+			ending_city.phase_effect(morph, captive_body.position)
+			trapped_player = captive_body
+			if t < 29:
+				if not anger_started:
+					anger_started = true
+					neon_shadow.call("play_animation", &"hurt", 0.25)
+					captive_body.call("play_animation", &"hurt", 0.25)
+				neon_shadow.call("set_expression", "frown")
+				captive_body.call("set_expression", "frown")
+				neon_shadow.rotation.x = sin(smoothstep(24, 27, t) * PI) * 0.22
+				captive_body.rotation = neon_shadow.rotation
+				if t > 26:
+					_reach_for_exit(neon_shadow)
+					_reach_for_exit(captive_body)
+				_shot(prison.position + Vector3(1.8, 1.8, -4.7), prison.position + Vector3(0, 1.35, -1.7))
+		if t >= 29:
+			var walking_body := neon_shadow if release_boy else captive_body
+			walking_body.skeleton.clear_bones_global_pose_override()
+			walking_body.rotation.y = lerp_angle(PI, 0, smoothstep(29, 31, t))
+			walking_body.rotation.x = 0.0 if release_boy else 0.1
+			walking_body.position.z = -1.7 + maxf(0, t - 31) * 1.3
+			if not walk_started:
+				walk_started = true
+				walking_body.call("play_animation", &"Run", 0.5)
+				walking_body.animation_player.speed_scale = 0.32
+				walking_body.call("set_expression", "neutral" if release_boy else "frown")
+			var rise := smoothstep(32, 42, t)
+			var follow: float = walking_body.position.z
+			ending_city.phase_light.position = walking_body.position + Vector3(1, 3, 2)
+			ending_city.phase_light.light_energy = 3.0
+			_shot(prison.position + Vector3(2.8 - rise * 2, 2.8 + rise * 19, follow - 7 - rise * 8), prison.position + Vector3(0, 1.2 + rise * 3, follow + rise * 17))
+			if t >= 37:
+				ending_card.text = "Good Ending" if release_boy else "Bad Ending"
+				ending_card.modulate.a = smoothstep(37, 39, t)
+				ending_card.show()
 	else:
-		phase = "complete"
-		preload("res://scripts/city_progress.gd").reset()
-		get_tree().change_scene_to_file("res://scenes/title_screen.tscn")
+		phase = "ending_card"
+		phase_time = 0.0
+		fade.color.a = 0.0
+		ending_card.text = "Good Ending" if release_boy else "Bad Ending"
+		ending_card.show()
 	if t >= 4.4 and t < 6.6:
 		_pose_pickup()
 	else:
 		bedroom_model.skeleton.clear_bones_global_pose_override()
+		revealed_body.skeleton.clear_bones_global_pose_override()
 
 # Pose the existing skinned arms toward the boombox grip.
 func _reach_for_exit(body: Node3D) -> void:
@@ -221,8 +337,9 @@ func _reach_for_exit(body: Node3D) -> void:
 	rig.set_bone_global_pose_override(upper, pose, 1.0, true)
 
 func _pose_pickup() -> void:
-	var rig: Skeleton3D = bedroom_model.skeleton
-	bedroom_model.animation_player.advance(0)
+	var body := revealed_body if release_boy else bedroom_model
+	var rig: Skeleton3D = body.skeleton
+	body.animation_player.advance(0)
 	for side in ["L", "R"]:
 		var upper := rig.find_bone("UpperArm." + side)
 		var forearm := rig.find_bone("Forearm." + side)
