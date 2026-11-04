@@ -7,6 +7,7 @@ var health_text: Label
 var glide_root: Control
 var glide_fill: ProgressBar
 var glide_text: Label
+var tape_indicator: Control
 
 func _ready() -> void:
 	name = "SessionHUD"
@@ -14,6 +15,7 @@ func _ready() -> void:
 	player = get_parent()
 	_build_health()
 	_build_glide()
+	_build_tape()
 	# Move existing race progress below health, keeping both readable.
 	if Progress.active:
 		for canvas in player.get_parent().find_children("*", "CanvasLayer", true, false):
@@ -114,6 +116,15 @@ func _build_glide() -> void:
 	glide_fill = _bar(glide_root, Vector2(0, 31), Vector2(340, 15), Color("4ddcea"))
 	glide_text = _label(glide_root, Vector2(0, 0), Vector2(340, 26))
 	glide_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+func _build_tape() -> void:
+	tape_indicator = preload("res://scripts/tape_assembly_indicator.gd").new()
+	add_child(tape_indicator)
+	tape_indicator.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	tape_indicator.offset_left = -244
+	tape_indicator.offset_right = -20
+	tape_indicator.offset_top = 18
+	tape_indicator.offset_bottom = 166
 
 func _update() -> void:
 	health_root.visible = Progress.active
