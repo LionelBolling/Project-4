@@ -486,24 +486,8 @@ func _round_finished() -> void:
 func _begin_transition() -> void:
 	stage.process_mode = Node.PROCESS_MODE_DISABLED
 	if round_number == 4:
-		_set_phase("ending")
-		home_returned = false
-		stage.rival.visual.call("play_animation", &"hurt", 0.1)
-		cassette.reparent(stage)
-		cassette.position = stage.rival.position + Vector3(0, 0.8, 0)
-		cassette.scale = Vector3.ONE
-		cassette.show()
-		exit_box = Props.boombox(stage, stage.rival.position + Vector3(0, 0.8, -3))
-		exit_portal = Node3D.new()
-		stage.add_child(exit_portal)
-		exit_portal.position = exit_box.position + Vector3(0, 1, -1)
-		for i in range(28):
-			var angle := i * TAU / 28
-			Props.box(exit_portal, Vector3(cos(angle) * 1.7, sin(angle) * 1.7, 0), Vector3(0.22, 0.3, 0.16), Color("65f5db"), 2)
-		exit_portal.hide()
-		stage._camera.current = true
-		stage._camera.position = stage.rival.position + Vector3(3, 2, 4)
-		stage._camera.look_at(stage.rival.position + Vector3.UP)
+		get_tree().change_scene_to_file("res://scenes/boss_victory_portal.tscn")
+		return
 	else:
 		_set_phase("between")
 		stage.player.camera.current = true
@@ -527,4 +511,4 @@ func _tick_between(dt: float) -> void:
 	if phase_time > 7: start_round(round_number + 1)
 
 func _tick_ending(_dt: float) -> void:
-	get_tree().change_scene_to_file("res://scenes/final_ending.tscn")
+	get_tree().change_scene_to_file("res://scenes/boss_victory_portal.tscn")

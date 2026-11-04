@@ -10,6 +10,12 @@ func _check() -> void:
 	await process_frame
 	var boss := current_scene
 	var player := boss.player as MovementTestPlayer
+	assert(boss.rival.entrail_lifetime_seconds == 1.0)
+	boss.rival._update_entrail_trails()
+	assert(boss.rival._entrail_paths[0].size() > 0)
+	boss._process(1.1)
+	assert(boss.rival._entrail_paths[0].is_empty(), "Boss entrails expire even when the shadow stops moving")
+	assert(boss._hud_health.max_value == 2.0, "Boss health shows two hits")
 	boss._begin_chase_cycle()
 	boss._begin_wait_for_approach()
 	player.global_position = boss.rival.global_position + Vector3(0.0, 0.0, 7.0)
@@ -26,9 +32,11 @@ func _check() -> void:
 	boss._begin_shadow_ram()
 	boss._recover_after_failure()
 	assert(boss.phase == "CHASE" and player.is_physics_processing())
-	boss.successful_hits = 4
+	boss._begin_qte()
+	boss._begin_player_ram()
+	boss._begin_enemy_launch()
 	boss._finish_enemy_launch()
-	assert(boss.phase == "WIN")
+	assert(boss.phase == "WIN" and boss.successful_hits == 2)
 	boss._process(boss.RESULTS_PAUSE + 0.1)
 	await process_frame
 	await process_frame

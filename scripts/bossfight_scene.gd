@@ -13,8 +13,9 @@ const SHADOW_STOP_DISTANCE := 20.0
 const APPROACH_DISTANCE := 8.0
 const MIN_SHADOW_LEAD := 12.0
 const MAX_SHADOW_LEAD := 20.0
-const RESULTS_PAUSE := 3.0
-const NEXT_SCENE := "res://scenes/boss_victory_portal.tscn"
+const RESULTS_PAUSE := 0.8
+const REQUIRED_HITS := 2
+const PORTAL_SCENE := preload("res://scenes/boss_victory_portal.tscn")
 
 @onready var player: MovementTestPlayer = $Player
 @onready var rival: RaceOpponent = $Rival
@@ -30,6 +31,7 @@ var ram_timer := 0.0
 var launch_timer := 0.0
 var flight_timer := 0.0
 var restart_timer := 0.0
+var _opening_portal := false
 var _rng := RandomNumberGenerator.new()
 var _segments: Array[Node3D] = []
 var _segment_container: Node3D
@@ -68,6 +70,7 @@ func _ready() -> void:
 	rival.collision_mask = 3
 	rival.finish_z = -1000000000.0
 	rival.run_speed = 9.0
+	rival.entrail_lifetime_seconds = 1.0
 	rival.rubberband_catchup_cap = 4.5
 	rival.rubberband_lead_slowdown = 0.2
 	rival.global_position = Vector3(1.4, 0.05, player.global_position.z - 10.0)
@@ -80,6 +83,7 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	_stream_corridor()
+	rival.expire_entrail_trails(delta)
 	if player.is_on_floor() and absf(player.global_position.x) < 4.0:
 		_player_checkpoint = player.global_position
 		_player_checkpoint.y = 0.05
@@ -120,8 +124,9 @@ func _process(delta: float) -> void:
 				_recover_after_failure()
 		"WIN":
 			restart_timer -= delta
-			if restart_timer <= 0.0:
-				get_tree().change_scene_to_file(NEXT_SCENE)
+			if restart_timer <= 0.0 and not _opening_portal:
+				_opening_portal = true
+				call_deferred("_open_portal_cutscene")
 	_update_cut_camera(delta)
 	_update_hud()
 
@@ -185,6 +190,7 @@ func _physics_process(delta: float) -> void:
 func _begin_chase_cycle() -> void:
 	phase = "CHASE"
 	chase_timer = CHASE_SECONDS
+	rival.clear_entrail_trails()
 	player.cancel_dive_for_qte()
 	player.set_physics_process(true)
 	var side := -1.0 if _rng.randf() < 0.5 else 1.0
@@ -263,7 +269,7 @@ func _begin_player_ram() -> void:
 	_ram_target.y = player.global_position.y
 	player.call("_set_animation", "dive")
 	successful_hits += 1
-	_hud_action.text = "HIT!  %d / 4" % successful_hits
+	_hud_action.text = "HIT!  %d / %d" % [successful_hits, REQUIRED_HITS]
 	_set_cut_camera(rival, false)
 
 func _begin_enemy_launch() -> void:
@@ -286,16 +292,26 @@ func _begin_enemy_launch() -> void:
 func _finish_enemy_launch() -> void:
 	rival.velocity = Vector3.ZERO
 	rival.visual.rotation = Vector3(0.0, PI, 0.0)
-	if successful_hits >= 4:
+	if successful_hits >= REQUIRED_HITS:
 		phase = "WIN"
 		restart_timer = RESULTS_PAUSE
-		_hud_action.text = ""
+		rival.clear_entrail_trails()
+		_clear_boss_projectiles()
+		_hud_action.text = "PORTAL OPENING"
 		player.set_physics_process(false)
 		rival.set_physics_process(false)
 		if has_meta("story_round"):
 			story_finished.emit()
 		return
 	_begin_chase_cycle()
+
+func _open_portal_cutscene() -> void:
+	if phase != "WIN" or has_meta("story_round"): return
+	var error := get_tree().change_scene_to_packed(PORTAL_SCENE)
+	if error != OK:
+		push_error("Could not open boss victory portal cutscene: %s" % error_string(error))
+		_opening_portal = false
+		restart_timer = 1.0
 
 func _begin_shadow_ram() -> void:
 	if phase not in ["QTE", "WAIT_APPROACH"]:
@@ -430,8 +446,8 @@ func _build_hud() -> void:
 	_hud_health = ProgressBar.new()
 	_hud_health.custom_minimum_size = Vector2(270.0, 24.0)
 	_hud_health.min_value = 0.0
-	_hud_health.max_value = 4.0
-	_hud_health.value = 4.0
+	_hud_health.max_value = REQUIRED_HITS
+	_hud_health.value = REQUIRED_HITS
 	_hud_health.show_percentage = false
 	_hud_health.add_theme_stylebox_override("background", _health_bar_style(Color(0.13, 0.08, 0.19, 1.0)))
 	_hud_health.add_theme_stylebox_override("fill", _health_bar_style(Color("ff3d9f")))
@@ -455,14 +471,14 @@ func _build_hud() -> void:
 func _update_hud() -> void:
 	if _hud_phase == null:
 		return
-	_hud_health.value = maxf(0.0, 4.0 - float(successful_hits))
+	_hud_health.value = maxf(0.0, float(REQUIRED_HITS - successful_hits))
 	_hud_phase.text = ""
 	if phase == "QTE":
 		_hud_action.visible = true
 		_hud_action.text = "PRESS  [ %s ]" % qte_key
 	elif phase == "WIN":
 		_hud_action.visible = true
-		_hud_action.text = ""
+		_hud_action.text = "PORTAL OPENING"
 		_hud_action.add_theme_color_override("font_color", Color("7ffff0"))
 		_hud_action.add_theme_color_override("font_outline_color", Color("168cff"))
 	elif phase == "COUNTDOWN":
@@ -646,9 +662,7 @@ func _on_rival_projectile_surface_impact(hit_position: Vector3, surface_normal: 
 func _clear_corridor_holes() -> void:
 	# Clear projectiles already in flight so they cannot immediately punch new
 	# holes after the QTE resolves.
-	for projectile in get_tree().get_nodes_in_group("rival_black_projectiles"):
-		if is_instance_valid(projectile):
-			projectile.queue_free()
+	_clear_boss_projectiles()
 	for surface_id in _surface_replacements.keys():
 		var data: Dictionary = _surface_replacements[surface_id]
 		var source := data.get("source") as StaticBody3D
@@ -663,6 +677,11 @@ func _clear_corridor_holes() -> void:
 	_surface_replacements.clear()
 	for marker in find_children("ShadowHoleMark", "Node3D", true, false):
 		marker.queue_free()
+
+func _clear_boss_projectiles() -> void:
+	for projectile in get_tree().get_nodes_in_group("rival_black_projectiles"):
+		if is_instance_valid(projectile) and is_ancestor_of(projectile):
+			projectile.queue_free()
 
 func _resolve_surface_source(surface: Object) -> StaticBody3D:
 	if not surface is Node:
