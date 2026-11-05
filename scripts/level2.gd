@@ -82,7 +82,7 @@ func _ready() -> void:
 	super._ready()
 	if Engine.is_editor_hint(): return
 	_build_monster_encounters()
-	rival.run_speed = 2.6
+	rival.run_speed = 5.2
 	rival.rubberband_enabled = false
 	rival.projectile_spawn_chance = 0.2
 	# The Level 2 opponent follows the authored stairs instead of bypassing them.
